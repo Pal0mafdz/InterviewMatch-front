@@ -1,18 +1,22 @@
 import { apiFetch } from './client'
 
 export interface MatchPartner {
+  _id: string
   nombre: string
   email: string
   bio?: string
-  cv?: string
-  linkReunion?: string
+  cvPath?: string
 }
 
 export interface MyMatchResponse {
   totalMocks: number
+  matchId?: string
+  enlaceReunion?: string
+  partner?: MatchPartner
   matches: Array<{
-    slot: number
-    pareja: MatchPartner
+    matchId: string
+    enlaceReunion?: string
+    partner: MatchPartner
   }>
 }
 

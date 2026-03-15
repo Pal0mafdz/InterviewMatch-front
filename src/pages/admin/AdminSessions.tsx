@@ -68,8 +68,8 @@ export function AdminSessions() {
             ) : (
               sessions.map(s => (
                 <tr key={s._id}>
-                  <td style={{ fontWeight: 700 }}>{s.nombre}</td>
-                  <td>{new Date(s.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td style={{ fontWeight: 700 }}>{s.titulo}</td>
+                  <td>{new Date(s.fechaProgramada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                   <td>{statusChip(s.estado)}</td>
                   <td>{s.inscripciones?.length ?? '—'}</td>
                   <td>
