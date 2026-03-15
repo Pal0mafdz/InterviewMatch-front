@@ -1,36 +1,55 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Win98Window } from '../../components/Win98Window'
+import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
 import type { MyMatchResponse } from '../../api/matches'
 import { STATIC_BASE_URL } from '../../api/constants'
 
-function PartnerCard({ slot, pareja }: { slot: number; pareja: MyMatchResponse['matches'][number]['pareja'] }) {
+function PartnerCard({ slot, pareja, totalMocks }: {
+  slot: number
+  pareja: MyMatchResponse['matches'][number]['pareja']
+  totalMocks: number
+}) {
   return (
-    <div className="sunken-panel" style={{ padding: 12, marginBottom: 12 }}>
-      <h3 style={{ marginTop: 0 }}>Slot {slot}: {pareja.nombre}</h3>
-      <div className="field-row-stacked" style={{ marginBottom: 6 }}>
-        <strong>Email:</strong> {pareja.email}
+    <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+      <div className="retro-section-header" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="retro-avatar retro-avatar-sm">{pareja.nombre.charAt(0).toUpperCase()}</div>
+          <h2>{pareja.nombre}</h2>
+        </div>
+        {totalMocks > 1 && <span className="retro-chip retro-chip-blue">MOCK #{slot}</span>}
       </div>
-      {pareja.bio && (
-        <div className="field-row-stacked" style={{ marginBottom: 6 }}>
-          <strong>Bio:</strong> {pareja.bio}
+      <div style={{ padding: 20 }}>
+        <div style={{ marginBottom: 10, fontFamily: "'Space Mono', monospace", fontSize: '0.78rem' }}>
+          <span className="retro-label">✉ EMAIL</span>
+          {pareja.email}
         </div>
-      )}
-      {pareja.linkReunion && (
-        <div className="field-row-stacked" style={{ marginBottom: 6 }}>
-          <strong>Link reunión:</strong>{' '}
-          <a href={pareja.linkReunion} target="_blank" rel="noreferrer">{pareja.linkReunion}</a>
-        </div>
-      )}
-      {pareja.cv && (
-        <div style={{ marginTop: 8 }}>
-          <a href={`${STATIC_BASE_URL}${pareja.cv}`} download className="button">
-            Descargar CV
+        {pareja.bio && (
+          <div style={{ marginBottom: 10 }}>
+            <span className="retro-label">💬 BIO</span>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, fontStyle: 'italic' }}>
+              {pareja.bio}
+            </div>
+          </div>
+        )}
+        {pareja.linkReunion && (
+          <div style={{ marginBottom: 14 }}>
+            <span className="retro-label">🔗 LINK REUNIÓN</span>
+            <a href={pareja.linkReunion} target="_blank" rel="noreferrer"
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', color: '#C9521A' }}>
+              {pareja.linkReunion}
+            </a>
+          </div>
+        )}
+        {pareja.cv && (
+          <a href={`${STATIC_BASE_URL}${pareja.cv}`} download style={{ textDecoration: 'none' }}>
+            <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
+              ⬇ DESCARGAR CV
+            </Button>
           </a>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Card>
   )
 }
 
@@ -47,41 +66,41 @@ export function MyMatch() {
       .then(setMatchData)
       .catch(err => {
         const status = (err as Error & { status?: number }).status
-        if (status === 404) {
-          setNotPublished(true)
-        } else {
-          setError(err instanceof Error ? err.message : 'Error')
-        }
+        if (status === 404) { setNotPublished(true) }
+        else { setError(err instanceof Error ? err.message : 'Error') }
       })
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return <Win98Window title="Mi Pareja"><progress style={{ width: '100%' }}></progress></Win98Window>
+  if (loading) return <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: '#C9521A' }}>CARGANDO...</div>
 
-  if (notPublished) {
-    return (
-      <Win98Window title="Mi Pareja">
-        <p>⏳ Los emparejamientos aún no se han publicado.</p>
-        <p>Vuelve más tarde cuando el administrador publique los pares.</p>
-      </Win98Window>
-    )
-  }
+  if (notPublished) return (
+    <div>
+      <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', color: '#1A0F08', lineHeight: 1.6, marginBottom: 20 }}>👥 MI PAREJA</h1>
+      <div className="retro-alert retro-alert-info">
+        <strong>Los emparejamientos aún no se han publicado.</strong><br/>
+        Vuelve más tarde cuando el administrador publique los pares.
+      </div>
+    </div>
+  )
 
-  if (error) return <Win98Window title="Mi Pareja"><p style={{ color: 'red' }}>⚠ {error}</p></Win98Window>
+  if (error) return <div className="retro-alert retro-alert-error">{error}</div>
   if (!matchData) return null
 
   return (
-    <Win98Window title="Mi Pareja de Mock Interview">
-      {matchData.totalMocks === 1 ? (
-        <PartnerCard slot={1} pareja={matchData.matches[0].pareja} />
-      ) : (
-        <>
-          <p>Tienes <strong>{matchData.totalMocks} mocks</strong> programados. Tus parejas:</p>
-          {matchData.matches.map(m => (
-            <PartnerCard key={m.slot} slot={m.slot} pareja={m.pareja} />
-          ))}
-        </>
+    <div>
+      <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', color: '#1A0F08', lineHeight: 1.6, marginBottom: 6 }}>
+        👥 {matchData.totalMocks === 1 ? 'TU PAREJA' : 'TUS PAREJAS'}
+      </h1>
+      {matchData.totalMocks > 1 && (
+        <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D', marginBottom: 20 }}>
+          Tienes <strong>{matchData.totalMocks} mocks</strong> programados
+        </p>
       )}
-    </Win98Window>
+      {!matchData.matches[0] ? null : matchData.totalMocks === 1
+        ? <PartnerCard slot={1} pareja={matchData.matches[0].pareja} totalMocks={1} />
+        : matchData.matches.map(m => <PartnerCard key={m.slot} slot={m.slot} pareja={m.pareja} totalMocks={matchData.totalMocks} />)
+      }
+    </div>
   )
 }

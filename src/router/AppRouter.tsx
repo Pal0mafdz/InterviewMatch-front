@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { AdminRoute } from '../components/AdminRoute'
-import { Navbar } from '../components/Navbar'
-import { StatusBar } from '../components/StatusBar'
+import { AppLayout } from '../components/AppLayout'
 import { Login } from '../pages/auth/Login'
 import { Register } from '../pages/auth/Register'
 import { Sessions } from '../pages/user/Sessions'
@@ -16,23 +15,67 @@ import { AdminSessionDetail } from '../pages/admin/AdminSessionDetail'
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <main style={{ paddingBottom: 40 }}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
-          <Route path="/sessions/:id" element={<ProtectedRoute><SessionDetail /></ProtectedRoute>} />
-          <Route path="/sessions/:id/match" element={<ProtectedRoute><MyMatch /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/admin/sessions" element={<AdminRoute><AdminSessions /></AdminRoute>} />
-          <Route path="/admin/sessions/new" element={<AdminRoute><CreateSession /></AdminRoute>} />
-          <Route path="/admin/sessions/:id" element={<AdminRoute><AdminSessionDetail /></AdminRoute>} />
-          <Route path="/" element={<Navigate to="/sessions" replace />} />
-          <Route path="*" element={<Navigate to="/sessions" replace />} />
-        </Routes>
-      </main>
-      <StatusBar />
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* User routes */}
+        <Route path="/sessions" element={
+          <ProtectedRoute>
+            <AppLayout title="Sesiones de Mock Interview">
+              <Sessions />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/sessions/:id" element={
+          <ProtectedRoute>
+            <AppLayout title="Detalle de Sesión">
+              <SessionDetail />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/sessions/:id/match" element={
+          <ProtectedRoute>
+            <AppLayout title="Mi Pareja">
+              <MyMatch />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <AppLayout title="Mi Perfil">
+              <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Admin routes */}
+        <Route path="/admin/sessions" element={
+          <AdminRoute>
+            <AppLayout title="Admin — Sesiones">
+              <AdminSessions />
+            </AppLayout>
+          </AdminRoute>
+        } />
+        <Route path="/admin/sessions/new" element={
+          <AdminRoute>
+            <AppLayout title="Admin — Nueva Sesión">
+              <CreateSession />
+            </AppLayout>
+          </AdminRoute>
+        } />
+        <Route path="/admin/sessions/:id" element={
+          <AdminRoute>
+            <AppLayout title="Admin — Detalle de Sesión">
+              <AdminSessionDetail />
+            </AppLayout>
+          </AdminRoute>
+        } />
+
+        <Route path="/" element={<Navigate to="/sessions" replace />} />
+        <Route path="*" element={<Navigate to="/sessions" replace />} />
+      </Routes>
     </BrowserRouter>
   )
 }

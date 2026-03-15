@@ -1,14 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Win98Window } from '../../components/Win98Window'
+import { useNavigate } from 'react-router-dom'
+import { Button } from 'pixel-retroui'
 import { getSessions } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
 
+const statusChip = (estado: string) => {
+  const map: Record<string, string> = {
+    abierta: 'retro-chip-green',
+    publicada: 'retro-chip-blue',
+    finalizada: 'retro-chip-muted',
+    cancelada: 'retro-chip-red',
+  }
+  const cls = map[estado] ?? 'retro-chip-muted'
+  return <span className={`retro-chip ${cls}`}>{estado.toUpperCase()}</span>
+}
+
 export function AdminSessions() {
-  const navigate = useNavigate()
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     getSessions()
@@ -17,55 +28,64 @@ export function AdminSessions() {
       .finally(() => setLoading(false))
   }, [])
 
-  const estadoLabel: Record<string, string> = {
-    abierta: 'Abierta',
-    publicada: 'Publicada',
-    finalizada: 'Finalizada',
-    cancelada: 'Cancelada',
-  }
-
   return (
-    <Win98Window title="Admin — Sesiones">
-      <div className="field-row" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-        <strong>Gestión de sesiones</strong>
-        <Link to="/admin/sessions/new">
-          <button className="default">+ Nueva sesión</button>
-        </Link>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', color: '#1A0F08', lineHeight: 1.6 }}>
+          🛠 SESIONES
+        </h1>
+        <Button
+          bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+          onClick={() => navigate('/admin/sessions/new')}
+        >
+          + NUEVA SESIÓN
+        </Button>
       </div>
-      {loading && <progress style={{ width: '100%' }}></progress>}
-      {error && <p style={{ color: 'red' }}>⚠ {error}</p>}
-      {!loading && !error && (
-        <div className="sunken-panel">
-          <table className="interactive" style={{ width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Inscritos</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessions.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center' }}>No hay sesiones</td></tr>
-              ) : (
-                sessions.map(s => (
-                  <tr key={s._id}>
-                    <td>{s.nombre}</td>
-                    <td>{new Date(s.fecha).toLocaleDateString('es-ES')}</td>
-                    <td>{estadoLabel[s.estado] ?? s.estado}</td>
-                    <td>{s.inscripciones?.length ?? '—'}</td>
-                    <td>
-                      <button onClick={() => navigate(`/admin/sessions/${s._id}`)}>Ver</button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+
+      {loading && (
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: '#C9521A' }}>CARGANDO...</div>
       )}
-    </Win98Window>
+      {error && <div className="retro-alert retro-alert-error">{error}</div>}
+
+      {!loading && !error && (
+        <table className="retro-table">
+          <thead>
+            <tr>
+              <th>NOMBRE</th>
+              <th>FECHA</th>
+              <th>ESTADO</th>
+              <th>INSCRITOS</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {sessions.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', color: '#7A4F2D', fontFamily: "'Space Mono', monospace", fontSize: '0.78rem' }}>
+                  No hay sesiones creadas
+                </td>
+              </tr>
+            ) : (
+              sessions.map(s => (
+                <tr key={s._id}>
+                  <td style={{ fontWeight: 700 }}>{s.nombre}</td>
+                  <td>{new Date(s.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>{statusChip(s.estado)}</td>
+                  <td>{s.inscripciones?.length ?? '—'}</td>
+                  <td>
+                    <Button
+                      bg="#FBF3E3" textColor="#C9521A" shadow="#1A0F08" borderColor="#C9521A"
+                      onClick={() => navigate(`/admin/sessions/${s._id}`)}
+                    >
+                      VER →
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Win98Window } from '../../components/Win98Window'
+import { Button, Card } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { getProfile, uploadCV } from '../../api/users'
 import type { UserProfile } from '../../api/users'
@@ -24,80 +24,79 @@ export function Profile() {
   async function handleCVUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.type !== 'application/pdf') {
-      setUploadError('Solo se aceptan archivos PDF')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError('El archivo no puede superar 5MB')
-      return
-    }
-    setUploading(true)
-    setUploadError(null)
-    setUploadMsg(null)
+    if (file.type !== 'application/pdf') { setUploadError('Solo se aceptan archivos PDF'); return }
+    if (file.size > 5 * 1024 * 1024) { setUploadError('El archivo no puede superar 5MB'); return }
+    setUploading(true); setUploadError(null); setUploadMsg(null)
     try {
       const res = await uploadCV(file)
       setUploadMsg('CV subido correctamente')
       setProfile(prev => prev ? { ...prev, cv: res.cv } : prev)
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Error al subir CV')
-    } finally {
-      setUploading(false)
-    }
+    } catch (err) { setUploadError(err instanceof Error ? err.message : 'Error') }
+    finally { setUploading(false) }
   }
 
-  if (loading) return <Win98Window title="Mi Perfil"><progress style={{ width: '100%' }}></progress></Win98Window>
-  if (error) return <Win98Window title="Mi Perfil"><p style={{ color: 'red' }}>⚠ {error}</p></Win98Window>
+  if (loading) return <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: '#C9521A' }}>CARGANDO...</div>
+  if (error) return <div className="retro-alert retro-alert-error">{error}</div>
   if (!profile) return null
 
   return (
-    <Win98Window title="Mi Perfil">
-      <div className="sunken-panel" style={{ padding: 12, marginBottom: 16 }}>
-        <div className="field-row-stacked" style={{ marginBottom: 8 }}>
-          <strong>Nombre:</strong> {profile.nombre}
-        </div>
-        <div className="field-row-stacked" style={{ marginBottom: 8 }}>
-          <strong>Email:</strong> {profile.email}
-        </div>
-        <div className="field-row-stacked">
-          <strong>Rol:</strong> {profile.rol}
-        </div>
-      </div>
+    <div style={{ maxWidth: 520 }}>
+      <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', color: '#1A0F08', lineHeight: 1.6, marginBottom: 20 }}>
+        👤 MI PERFIL
+      </h1>
 
-      <fieldset>
-        <legend>Curriculum Vitae</legend>
-        {profile.cv ? (
-          <p>
-            CV cargado:{' '}
-            <a
-              href={`${STATIC_BASE_URL}${profile.cv}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Ver CV actual
-            </a>
+      {/* User info */}
+      <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+        <div className="retro-section-header"><h2>DATOS DE CUENTA</h2></div>
+        <div style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+            <div className="retro-avatar retro-avatar-md">{profile.nombre.charAt(0).toUpperCase()}</div>
+            <div>
+              <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.65rem', color: '#1A0F08', lineHeight: 1.8 }}>{profile.nombre}</div>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', color: '#7A4F2D' }}>{profile.email}</div>
+            </div>
+            <span className={`retro-chip ${profile.rol === 'admin' ? 'retro-chip-red' : 'retro-chip-muted'}`} style={{ marginLeft: 'auto' }}>
+              {profile.rol.toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </Card>
+
+      {/* CV section */}
+      <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
+        <div className="retro-section-header"><h2>📄 CURRICULUM VITAE</h2></div>
+        <div style={{ padding: 20 }}>
+          {profile.cv ? (
+            <div className="retro-alert retro-alert-success" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>✓ CV cargado</span>
+              <a href={`${STATIC_BASE_URL}${profile.cv}`} target="_blank" rel="noreferrer"
+                style={{ color: '#C9521A', fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem' }}>
+                VER →
+              </a>
+            </div>
+          ) : (
+            <div className="retro-alert retro-alert-info" style={{ marginBottom: 14 }}>
+              No tienes CV cargado aún.
+            </div>
+          )}
+          <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 14 }}>
+            Sube tu CV en PDF (máx. 5MB). Tu pareja podrá descargarlo.
           </p>
-        ) : (
-          <p>No tienes CV cargado aún.</p>
-        )}
-        <div className="field-row-stacked" style={{ marginTop: 8 }}>
-          <label htmlFor="cv-upload">Subir nuevo CV (PDF, máx 5MB):</label>
-          <input
-            id="cv-upload"
-            type="file"
-            accept=".pdf,application/pdf"
-            onChange={handleCVUpload}
-            disabled={uploading}
-          />
+          <label>
+            <Button bg="#FBF3E3" textColor="#C9521A" shadow="#1A0F08" borderColor="#C9521A" disabled={uploading} style={{ cursor: 'pointer' }}>
+              {uploading ? 'SUBIENDO...' : '📎 SUBIR CV (PDF)'}
+            </Button>
+            <input type="file" accept=".pdf,application/pdf" hidden onChange={handleCVUpload} />
+          </label>
+          {uploading && <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem', color: '#C9521A', marginTop: 10 }}>SUBIENDO...</div>}
+          {uploadError && <div className="retro-alert retro-alert-error" style={{ marginTop: 12 }}>{uploadError}</div>}
+          {uploadMsg && <div className="retro-alert retro-alert-success" style={{ marginTop: 12 }}>✓ {uploadMsg}</div>}
         </div>
-        {uploading && <progress style={{ width: '100%', marginTop: 8 }}></progress>}
-        {uploadError && <p style={{ color: 'red', marginTop: 8 }}>⚠ {uploadError}</p>}
-        {uploadMsg && <p style={{ color: 'green', marginTop: 8 }}>✓ {uploadMsg}</p>}
-      </fieldset>
+      </Card>
 
-      <div style={{ marginTop: 16 }}>
-        <button onClick={logout}>Cerrar sesión</button>
-      </div>
-    </Win98Window>
+      <Button bg="#FBF3E3" textColor="#7A4F2D" shadow="#1A0F08" borderColor="#1A0F08" onClick={logout}>
+        🚪 CERRAR SESIÓN
+      </Button>
+    </div>
   )
 }

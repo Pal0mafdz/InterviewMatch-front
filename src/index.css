@@ -1,11 +1,165 @@
-body {
-  background-color: #008080;
-  min-height: 100vh;
-  margin: 0;
-  padding: 20px;
-  box-sizing: border-box;
+/* pixel-retroui CSS variable overrides — warm palette */
+:root {
+  --primary-bg: #C9521A;
+  --primary-text: #FFFDF7;
+  --primary-shadow: #1A0F08;
+  --secondary-bg: #F5C842;
+  --secondary-text: #1A0F08;
+  --secondary-shadow: #1A0F08;
+  --bg-card: #FBF3E3;
+  --text-card: #1A0F08;
+  --border-card: #1A0F08;
+  --shadow-card: #1A0F08;
+  --bg-input: #FBF3E3;
+  --text-input: #1A0F08;
+  --border-input: #1A0F08;
+  --bg-textarea: #FBF3E3;
+  --text-textarea: #1A0F08;
+  --color-progressbar: #C9521A;
+  --border-progressbar: #1A0F08;
 }
 
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background-color: #F0E4CC;
+  font-family: 'Space Mono', monospace;
+  color: #1A0F08;
 }
+
+/* ── Retro Table ── */
+.retro-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #1A0F08;
+  background: #FBF3E3;
+}
+.retro-table th {
+  background: #F5C842;
+  border: 2px solid #1A0F08;
+  padding: 8px 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1A0F08;
+  text-align: left;
+}
+.retro-table td {
+  border: 1px solid #DFC99A;
+  padding: 10px 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  color: #1A0F08;
+  vertical-align: middle;
+}
+.retro-table tbody tr:nth-child(even) td { background: #F5EDD8; }
+.retro-table tbody tr:hover td { background: #F0E4CC; cursor: pointer; }
+
+/* ── Retro Status Chip ── */
+.retro-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 2px solid;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  font-weight: 400;
+  line-height: 1.8;
+  white-space: nowrap;
+}
+.retro-chip-green { background: #E8F5E9; color: #2E7D32; border-color: #2E7D32; }
+.retro-chip-blue  { background: #E3F2FD; color: #1565C0; border-color: #1565C0; }
+.retro-chip-red   { background: #FDECEA; color: #C62828; border-color: #C62828; }
+.retro-chip-amber { background: #FFF8E1; color: #E65100; border-color: #E65100; }
+.retro-chip-muted { background: #F5EDD8; color: #7A4F2D; border-color: #7A4F2D; }
+
+/* ── Retro Alert ── */
+.retro-alert {
+  border: 2px solid;
+  padding: 12px 16px;
+  box-shadow: 3px 3px 0 #1A0F08;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.retro-alert-error   { background: #FDECEA; color: #7A1A1A; border-color: #C62828; }
+.retro-alert-success { background: #E8F5E9; color: #1A3A1A; border-color: #2E7D32; }
+.retro-alert-info    { background: #FFF8D6; color: #7A4F00; border-color: #F5C842; }
+.retro-alert strong  { font-family: 'Press Start 2P', monospace; font-size: 0.6rem; }
+
+/* ── Retro Section Header (amber bar inside cards) ── */
+.retro-section-header {
+  background: #F5C842;
+  border-bottom: 2px solid #1A0F08;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.retro-section-header h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  color: #1A0F08;
+  line-height: 1.5;
+}
+
+/* ── Retro Avatar ── */
+.retro-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #C9521A;
+  color: #FFFDF7;
+  border: 2px solid #1A0F08;
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+.retro-avatar-sm { width: 32px; height: 32px; font-size: 0.55rem; }
+.retro-avatar-md { width: 44px; height: 44px; font-size: 0.75rem; }
+.retro-avatar-lg { width: 56px; height: 56px; font-size: 0.9rem; }
+
+/* ── Retro Label ── */
+.retro-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  color: #7A4F2D;
+  letter-spacing: 0.05em;
+  line-height: 2;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* ── Retro Stats Card ── */
+.retro-stat {
+  background: #F5EDD8;
+  border: 2px solid #1A0F08;
+  box-shadow: 3px 3px 0 #1A0F08;
+  padding: 14px;
+  text-align: center;
+}
+.retro-stat-value {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.4rem;
+  color: #C9521A;
+  line-height: 1.3;
+  display: block;
+}
+.retro-stat-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.45rem;
+  color: #7A4F2D;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+  display: block;
+}
+
+/* ── Retro Form Row ── */
+.retro-form-field { margin-bottom: 20px; }
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #E8D5B5; border: 1px solid #1A0F08; }
+::-webkit-scrollbar-thumb { background: #C9521A; border: 1px solid #1A0F08; }
