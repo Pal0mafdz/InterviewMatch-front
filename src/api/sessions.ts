@@ -2,12 +2,12 @@ import { apiFetch } from './client'
 
 export interface Session {
   _id: string
-  nombre: string
-  fecha: string
+  titulo: string
+  fechaProgramada: string
   estado: 'abierta' | 'publicada' | 'finalizada' | 'cancelada'
   descripcion?: string
   inscripciones?: Array<{
-    usuario: string | { _id: string; nombre?: string; email?: string }
+    usuario: string | { _id: string; nombre?: string; email?: string; cvPath?: string; bio?: string; linkReunion?: string }
     mockCount: number
   }>
 }
@@ -33,7 +33,7 @@ export function cancelRegistration(id: string): Promise<{ mensaje: string }> {
   })
 }
 
-export function createSession(data: { nombre: string; fecha: string; descripcion?: string }): Promise<Session> {
+export function createSession(data: { titulo: string; fechaProgramada: string; descripcion?: string }): Promise<Session> {
   return apiFetch<Session>('/sessions', {
     method: 'POST',
     body: JSON.stringify(data),
