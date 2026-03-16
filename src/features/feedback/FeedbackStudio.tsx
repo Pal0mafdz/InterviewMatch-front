@@ -6,11 +6,27 @@ import { FeedbackEditor } from './FeedbackEditor'
 import { PublicFeedbackEntry } from './components/PublicFeedbackEntry'
 import { useFeedbackEditor } from './hooks/useFeedbackEditor'
 import { buildAbsoluteFeedbackDigestUrl, buildCurrentFeedbackEditorUrl } from './lib/location'
+import { useDocumentTitle } from '../interview-review-studio/hooks/useDocumentTitle'
+
+function buildDocumentTitle(candidateName?: string | null) {
+  const normalizedCandidateName = candidateName?.trim()
+
+  if (!normalizedCandidateName) {
+    return 'Feedback Review'
+  }
+
+  return `${normalizedCandidateName} - Feedback Review`
+}
 
 export function FeedbackStudio() {
   const state = useFeedbackEditor()
   const [copied, setCopied] = useState(false)
   const [viewLinkCopied, setViewLinkCopied] = useState(false)
+  const candidateName = state.feedbackId
+    ? (state.loadedFeedback?.context.candidateName ?? state.context.candidate)
+    : null
+
+  useDocumentTitle(buildDocumentTitle(candidateName))
 
   async function copyEditorLink() {
     await window.navigator.clipboard.writeText(buildCurrentFeedbackEditorUrl())

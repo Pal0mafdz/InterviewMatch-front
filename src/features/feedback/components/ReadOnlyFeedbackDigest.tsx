@@ -3,6 +3,16 @@ import { Badge, Box, Container, Paper, ScrollArea, SimpleGrid, Stack, Text, Them
 import { buildOverallRead, scoreLabel } from '../../interview-review-studio/lib/review-summary'
 import type { FeedbackDetailDto } from '../types'
 
+function buildDigestTitle(candidateName?: string | null) {
+  const normalizedCandidateName = candidateName?.trim()
+
+  if (!normalizedCandidateName) {
+    return 'Feedback Review'
+  }
+
+  return `${normalizedCandidateName} - Feedback Review`
+}
+
 function mapDecisionLabel(decision: FeedbackDetailDto['decision']) {
   if (decision === 'UNDECIDED') {
     return 'UNDETERMINED'
@@ -22,6 +32,7 @@ type ReadOnlyFeedbackDigestProps = {
 export function ReadOnlyFeedbackDigest(props: ReadOnlyFeedbackDigestProps) {
   const { feedback } = props
   const normalizedDecision = mapDecisionLabel(feedback.decision)
+  const digestTitle = buildDigestTitle(feedback.context.candidateName)
   const sortedReferences = [...feedback.references].sort((left, right) => {
     if (left.type === right.type) {
       return left.order - right.order
@@ -38,7 +49,7 @@ export function ReadOnlyFeedbackDigest(props: ReadOnlyFeedbackDigestProps) {
             <Stack gap="md">
               <div>
                 <Text size="sm" c="dimmed">Feedback digest</Text>
-                <Title order={2}>What this feedback is saying</Title>
+                <Title order={2}>{digestTitle}</Title>
               </div>
 
               <Stack gap="xs">

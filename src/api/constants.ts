@@ -1,1 +1,1 @@
-export const STATIC_BASE_URL = 'http://localhost:5001'
+export const STATIC_BASE_URL = import.meta.env.VITE_STATIC_BASE_URL ?? ''
