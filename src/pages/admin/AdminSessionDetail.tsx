@@ -7,6 +7,7 @@ import { createManualMatch, getSessionMatches, publishShuffle, removeManualMatch
 import { STATIC_BASE_URL } from '../../api/constants'
 import type { SessionMatch, SessionMatchOverviewResponse } from '../../api/matches'
 import { useAuth } from '../../context/useAuth'
+import { formatDate } from '../../utils/date'
 
 type UnmatchedRegistration = NonNullable<SessionMatchOverviewResponse['unmatched']>[number]
 
@@ -416,7 +417,7 @@ export function AdminSessionDetail() {
             🛠 {session.titulo}
           </h1>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D' }}>
-            {new Date(session.fechaProgramada).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {formatDate(session.fechaProgramada, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
         </div>
         {statusChip(session.estado)}

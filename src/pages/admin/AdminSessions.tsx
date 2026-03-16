@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from 'pixel-retroui'
 import { getSessions } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
+import { formatDate } from '../../utils/date'
 
 const statusChip = (estado: string) => {
   const map: Record<string, string> = {
@@ -69,7 +70,7 @@ export function AdminSessions() {
               sessions.map(s => (
                 <tr key={s._id}>
                   <td style={{ fontWeight: 700 }}>{s.titulo}</td>
-                  <td>{new Date(s.fechaProgramada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>{formatDate(s.fechaProgramada, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                   <td>{statusChip(s.estado)}</td>
                   <td>{s.inscripciones?.length ?? '—'}</td>
                   <td>
