@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button, Card, Input } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { register as apiRegister } from '../../api/auth'
+import { toast } from 'react-hot-toast'
 
 export function Register() {
   const [nombre, setNombre] = useState('')
@@ -15,11 +16,18 @@ export function Register() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (password.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    
     setError(null)
     setLoading(true)
     try {
       const res = await apiRegister(nombre, email, password)
       login(res, res.token)
+      toast.success('¡Cuenta creada exitosamente!')
       navigate('/sessions')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse')
