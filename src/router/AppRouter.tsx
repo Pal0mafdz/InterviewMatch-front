@@ -8,6 +8,7 @@ import { Sessions } from '../pages/user/Sessions'
 import { SessionDetail } from '../pages/user/SessionDetail'
 import { Profile } from '../pages/user/Profile'
 import { MyMatch } from '../pages/user/MyMatch'
+import { ChatHub } from '../pages/user/ChatHub'
 import { Arsenal } from '../pages/user/Arsenal'
 import { AdminSessions } from '../pages/admin/AdminSessions'
 import { CreateSession } from '../pages/admin/CreateSession'
@@ -51,6 +52,13 @@ export function AppRouter() {
           <ProtectedRoute>
             <AppLayout title="Mi Perfil">
               <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/chats" element={
+          <ProtectedRoute>
+            <AppLayout title="Chat de Parejas">
+              <ChatHub />
             </AppLayout>
           </ProtectedRoute>
         } />

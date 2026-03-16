@@ -16,7 +16,11 @@ export function CreateSession() {
     setError(null)
     setLoading(true)
     try {
-      const session = await createSession({ titulo: nombre, fechaProgramada: fecha, descripcion: descripcion || undefined })
+      const parsed = new Date(fecha)
+      if (Number.isNaN(parsed.getTime())) {
+        throw new Error('Fecha y hora inválidas')
+      }
+      const session = await createSession({ titulo: nombre, fechaProgramada: parsed.toISOString(), descripcion: descripcion || undefined })
       navigate(`/admin/sessions/${session._id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear sesión')
@@ -54,9 +58,9 @@ export function CreateSession() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <span className="retro-label">FECHA *</span>
+            <span className="retro-label">FECHA Y HORA *</span>
             <input
-              type="date"
+              type="datetime-local"
               value={fecha}
               onChange={e => setFecha(e.target.value)}
               required

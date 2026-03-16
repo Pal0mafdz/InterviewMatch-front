@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
 import type { MyMatchResponse } from '../../api/matches'
@@ -9,13 +9,14 @@ function buildCvDownloadName(nombre: string | undefined) {
   return `${nombre || 'Usuario'} - CV.pdf`
 }
 
-function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee }: {
+function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, onOpenChat }: {
   slot: number
   partner: any
   enlaceReunion?: string
   totalMocks: number
   feedbackAsInterviewer?: { path: string } | null
   feedbackAsInterviewee?: { path: string } | null
+  onOpenChat?: (partnerId: string) => void
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -72,11 +73,25 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                 {feedbackAsInterviewee ? (
                   <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
-                      VER FEEDBACK SOBRE TI
+                      VER TU FEEDBACK
                     </Button>
                   </a>
                 ) : null}
               </div>
+            </div>
+          ) : null}
+
+          {partner._id ? (
+            <div style={{ marginTop: 14 }}>
+              <Button
+                bg="#FBF3E3"
+                textColor="#1A0F08"
+                shadow="#1A0F08"
+                borderColor="#1A0F08"
+                onClick={() => onOpenChat?.(partner._id)}
+              >
+                ABRIR CHAT
+              </Button>
             </div>
           ) : null}
         </div>
@@ -149,6 +164,7 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
 
 export function MyMatch() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [matchData, setMatchData] = useState<MyMatchResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [notPublished, setNotPublished] = useState(false)
@@ -192,8 +208,8 @@ export function MyMatch() {
         </p>
       )}
       {!matchData.matches[0] && !matchData.partner ? null : matchData.totalMocks === 1
-        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} />
-        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} />)
+        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
+        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
       }
     </div>
   )

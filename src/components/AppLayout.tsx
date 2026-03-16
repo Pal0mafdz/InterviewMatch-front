@@ -17,6 +17,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: '📅', label: 'SESIONES', to: '/sessions' },
+  { icon: '💬', label: 'CHAT', to: '/chats' },
   { icon: '🧰', label: 'ARSENAL', to: '/arsenal' },
   { icon: '👤', label: 'PERFIL', to: '/profile' },
 ]
@@ -175,12 +176,14 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               boxShadow: '2px 2px 0 #1A0F08',
               padding: '6px 12px',
             }}>
-              <ShareButton
-                path={location.pathname}
-                title={title}
-                description="Compartí esta página de ninicode con tus colegas"
-                label="Compartir"
-              />
+              {location.pathname !== '/chats' ? (
+                <ShareButton
+                  path={location.pathname}
+                  title={title}
+                  description="Compartí esta página de ninicode con tus colegas"
+                  label="Compartir"
+                />
+              ) : null}
               <div className="retro-avatar retro-avatar-sm">
                 {user.nombre.charAt(0).toUpperCase()}
               </div>

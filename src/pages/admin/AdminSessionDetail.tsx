@@ -41,6 +41,17 @@ function buildCvDownloadName(nombre?: string) {
   return `${nombre || 'Usuario'} - CV.pdf`
 }
 
+function toDateTimeLocalInput(value: string | Date) {
+  const d = typeof value === 'string' ? new Date(value) : value
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const year = d.getFullYear()
+  const month = pad(d.getMonth() + 1)
+  const day = pad(d.getDate())
+  const hours = pad(d.getHours())
+  const minutes = pad(d.getMinutes())
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 type SessionUserProfile = {
   _id: string
   nombre?: string
@@ -126,7 +137,7 @@ export function AdminSessionDetail() {
     }
 
     setEditTitulo(session.titulo)
-    setEditFecha(session.fechaProgramada.slice(0, 10))
+    setEditFecha(toDateTimeLocalInput(session.fechaProgramada))
     setEditDescripcion(session.descripcion ?? '')
   }, [session])
 
@@ -254,9 +265,14 @@ export function AdminSessionDetail() {
     setDetailsSuccess(null)
 
     try {
+      const parsed = new Date(editFecha)
+      if (Number.isNaN(parsed.getTime())) {
+        throw new Error('Fecha y hora inválidas')
+      }
+
       const updatedSession = await updateSession(id, {
         titulo: editTitulo,
-        fechaProgramada: editFecha,
+        fechaProgramada: parsed.toISOString(),
         descripcion: editDescripcion || undefined,
       })
 
@@ -447,10 +463,10 @@ export function AdminSessionDetail() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
-                  FECHA
+                  FECHA Y HORA
                 </div>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={editFecha}
                   onChange={(event) => setEditFecha(event.currentTarget.value)}
                   required
