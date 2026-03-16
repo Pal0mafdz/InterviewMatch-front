@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button, Card } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { getProfile, uploadCV } from '../../api/users'
@@ -13,6 +13,7 @@ export function Profile() {
   const [uploading, setUploading] = useState(false)
   const [uploadMsg, setUploadMsg] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getProfile()
@@ -82,12 +83,26 @@ export function Profile() {
           <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 14 }}>
             Sube tu CV en PDF (máx. 5MB). Tu pareja podrá descargarlo.
           </p>
-          <label>
-            <Button bg="#FBF3E3" textColor="#C9521A" shadow="#1A0F08" borderColor="#C9521A" disabled={uploading} style={{ cursor: 'pointer' }}>
+          <div>
+            <Button 
+              bg="#FBF3E3" 
+              textColor="#C9521A" 
+              shadow="#1A0F08" 
+              borderColor="#C9521A" 
+              disabled={uploading} 
+              onClick={() => fileInputRef.current?.click()}
+              style={{ cursor: 'pointer' }}
+            >
               {uploading ? 'SUBIENDO...' : '📎 SUBIR CV (PDF)'}
             </Button>
-            <input type="file" accept=".pdf,application/pdf" hidden onChange={handleCVUpload} />
-          </label>
+            <input 
+              type="file" 
+              accept=".pdf,application/pdf" 
+              style={{ display: 'none' }} 
+              ref={fileInputRef}
+              onChange={handleCVUpload} 
+            />
+          </div>
           {uploading && <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem', color: '#C9521A', marginTop: 10 }}>SUBIENDO...</div>}
           {uploadError && <div className="retro-alert retro-alert-error" style={{ marginTop: 12 }}>{uploadError}</div>}
           {uploadMsg && <div className="retro-alert retro-alert-success" style={{ marginTop: 12 }}>✓ {uploadMsg}</div>}

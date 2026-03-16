@@ -12,9 +12,13 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
+    "@mantine/core": "^8.3.17",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
     "98.css": "^0.1.21",
+    "framer-motion": "^12.36.0",
+    "lucide-react": "^0.577.0",
     "pixel-retroui": "^2.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

@@ -1,0 +1,541 @@
+.irs-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 40px 20px 120px;
+}
+
+.irs-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 190, 92, 0.16), transparent 24%),
+    radial-gradient(circle at 85% 15%, rgba(72, 187, 255, 0.18), transparent 18%);
+}
+
+.irs-container {
+  position: relative;
+  z-index: 1;
+}
+
+.irs-panel {
+  background: linear-gradient(180deg, rgba(23, 28, 39, 0.92), rgba(13, 17, 25, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.irs-score-card {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  min-height: 220px;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.irs-score-card:hover {
+  transform: translateY(-2px);
+}
+
+.irs-score-card-active {
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+}
+
+.irs-score-dot {
+  display: inline-flex;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.03);
+}
+
+.irs-score-card-layout {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.irs-score-card-toprow {
+  min-height: 24px;
+}
+
+.irs-score-card-copy {
+  display: grid;
+  grid-template-rows: minmax(42px, auto) 1fr;
+  align-content: start;
+}
+
+.irs-score-card-title {
+  font-size: clamp(1.04rem, 0.62vw + 0.8rem, 1.38rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.irs-score-card-description {
+  max-width: 24ch;
+  line-height: 1.32;
+}
+
+.irs-score-grid-item {
+  height: 100%;
+}
+
+.irs-score-grid-item > div {
+  height: 100%;
+}
+
+.irs-context-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.82fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.irs-context-lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 218px;
+  padding: 22px 24px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 190, 92, 0.1), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.irs-context-title {
+  margin-top: 8px;
+  font-size: clamp(1.8rem, 3vw, 2.45rem);
+  font-weight: 700;
+  line-height: 1.04;
+}
+
+.irs-context-badges {
+  margin-top: 18px;
+}
+
+.irs-context-details {
+  display: grid;
+  grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.irs-context-row {
+  display: grid;
+  gap: 8px;
+  padding: 16px 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.irs-context-row span {
+  color: rgba(237, 241, 247, 0.58);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.irs-context-row strong {
+  font-size: 1rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.irs-context-row-link {
+  align-content: start;
+}
+
+.irs-context-row-link button {
+  justify-self: start;
+}
+
+.irs-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.irs-meta-row span {
+  color: rgba(237, 241, 247, 0.62);
+  font-size: 0.9rem;
+}
+
+.irs-meta-row strong {
+  font-size: 0.92rem;
+  text-align: right;
+}
+
+.irs-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.72fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.irs-main-column {
+  min-width: 0;
+}
+
+.irs-digest-rail {
+  position: sticky;
+  top: 28px;
+  align-self: start;
+}
+
+.irs-problem-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.irs-problem-pill {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.irs-problem-pill-link {
+  border-radius: 999px;
+}
+
+.irs-problem-pill-statement {
+  width: 100%;
+  border-radius: 22px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.irs-problem-pill-trigger {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.irs-problem-pill-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.irs-problem-pill-statement .irs-problem-pill-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.irs-problem-pill-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.irs-problem-pill-kind {
+  color: rgba(237, 241, 247, 0.56);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.irs-problem-pill-text {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.irs-problem-pill-actions {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.irs-problem-pill-icon-button,
+.irs-problem-pill-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  outline: 0;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(237, 241, 247, 0.72);
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.irs-problem-pill-icon-button:hover,
+.irs-problem-pill-remove:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f5f7fa;
+}
+
+.irs-problem-pill-editor {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+}
+
+.irs-problem-pill-editor textarea {
+  line-height: 1.6;
+}
+
+.irs-problem-pill-editor-actions {
+  flex-wrap: wrap;
+}
+
+.irs-problem-input input {
+  flex: 1 1 220px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f5f7fa;
+  text-overflow: ellipsis;
+}
+
+.irs-timestamp-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.irs-timestamp-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 190, 92, 0.14);
+  color: #ffbe5c;
+}
+
+.irs-timestamp-readout {
+  margin-top: 4px;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.irs-feedback {
+  min-height: 340px;
+}
+
+.irs-feedback-docked {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+}
+
+.irs-feedback-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.irs-pip-document,
+.irs-pip-body,
+.irs-pip-root {
+  height: 100%;
+}
+
+.irs-pip-body {
+  margin: 0;
+  padding: 12px;
+  background:
+    radial-gradient(circle at top, rgba(255, 190, 92, 0.2), transparent 36%),
+    linear-gradient(180deg, #10141c 0%, #0a0d12 100%);
+}
+
+.irs-pip-panel {
+  min-height: calc(100vh - 24px);
+}
+
+.irs-pip-standby {
+  min-height: calc(100vh - 24px);
+  display: grid;
+  align-content: start;
+}
+
+.irs-pip-standby-surface {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(237, 241, 247, 0.8);
+}
+
+.irs-preview {
+  min-height: 100%;
+}
+
+.irs-digest-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.irs-digest-line {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.irs-digest-meta {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.irs-time-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+
+.irs-time-pill-positive {
+  color: #c7f7df;
+  background: rgba(25, 135, 84, 0.3);
+  border-color: rgba(67, 220, 149, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(67, 220, 149, 0.08);
+}
+
+.irs-time-pill-negative {
+  color: #ffd0d6;
+  background: rgba(185, 43, 74, 0.34);
+  border-color: rgba(255, 107, 129, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 129, 0.08);
+}
+
+.irs-time-pill-neutral {
+  color: #dfe5ec;
+  background: rgba(92, 102, 118, 0.28);
+  border-color: rgba(170, 178, 190, 0.22);
+}
+
+.irs-reference-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 10px 0;
+}
+
+.irs-reference-row-statement {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.irs-reference-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.irs-reference-body {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.irs-reference-body-statement {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.irs-text-wrap {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 1100px) {
+  .irs-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .irs-digest-rail {
+    position: static;
+  }
+}
+
+@media (max-width: 900px) {
+  .irs-context-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .irs-shell {
+    padding: 20px 14px 110px;
+  }
+
+  .irs-action-surface {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .irs-timestamp-card > div {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+}

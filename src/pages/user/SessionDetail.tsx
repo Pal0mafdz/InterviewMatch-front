@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
+import { STATIC_BASE_URL } from '../../api/constants'
 import { useAuth } from '../../context/useAuth'
 import { getSession, registerForSession, cancelRegistration } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
@@ -82,10 +83,10 @@ export function SessionDetail() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.85rem', color: '#1A0F08', lineHeight: 1.6, marginBottom: 6 }}>
-            {session.nombre}
+            {session.titulo}
           </h1>
           <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', color: '#7A4F2D' }}>
-            {new Date(session.fecha).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date(session.fechaProgramada).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
         {statusChip(session.estado)}
@@ -164,10 +165,59 @@ export function SessionDetail() {
 
       {/* Other states */}
       {session.estado !== 'abierta' && session.estado !== 'publicada' && (
-        <div className="retro-alert retro-alert-info">
+        <div className="retro-alert retro-alert-info" style={{ marginBottom: 24 }}>
           Esta sesión está <strong>{session.estado}</strong> y no acepta inscripciones.
         </div>
       )}
+
+      {/* Enrolled Users Table */}
+      <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginTop: 24, marginBottom: 24 }}>
+        <div className="retro-section-header"><h2>👥 USUARIOS INSCRITOS ({session.inscripciones?.length || 0})</h2></div>
+        <div style={{ padding: 20, overflowX: 'auto' }}>
+          {session.inscripciones && session.inscripciones.length > 0 ? (
+            <table className="retro-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '2px solid #1A0F08', padding: '10px' }}>NOMBRE</th>
+                  <th style={{ textAlign: 'left', borderBottom: '2px solid #1A0F08', padding: '10px' }}>EMAIL</th>
+                  <th style={{ textAlign: 'center', borderBottom: '2px solid #1A0F08', padding: '10px' }}>Nº MOCKS</th>
+                  <th style={{ textAlign: 'center', borderBottom: '2px solid #1A0F08', padding: '10px' }}>PERFIL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {session.inscripciones.map((insc, idx) => {
+                  const u = typeof insc.usuario === 'string' ? { _id: insc.usuario, nombre: '...', email: '...', cvPath: '', bio: '' } : insc.usuario
+                  return (
+                    <tr key={`${u._id || idx}`} style={{ borderBottom: '1px solid #1A0F08' }}>
+                      <td style={{ padding: '10px' }}>{u.nombre || 'Desconocido'}</td>
+                      <td style={{ padding: '10px', fontSize: '0.8rem', fontFamily: 'monospace' }}>{u.email || '—'}</td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>
+                        <span className="retro-chip retro-chip-blue">{insc.mockCount}</span>
+                      </td>
+                      <td style={{ padding: '10px', textAlign: 'center' }}>
+                        {u.cvPath ? (
+                          <a href={`${STATIC_BASE_URL}${u.cvPath}`} download style={{ textDecoration: 'none' }}>
+                            <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ padding: '4px 8px', fontSize: '0.65rem' }}>
+                              CV
+                            </Button>
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: '#7A4F2D' }}>Sin CV</span>
+                        )}
+                        {u.bio && (
+                          <div style={{ fontSize: '0.65rem', color: '#7A4F2D', marginTop: '4px', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={u.bio}>Bio: {u.bio}</div>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          ) : (
+             <div style={{ textAlign: 'center', padding: '20px', color: '#7A4F2D', fontStyle: 'italic' }}>Aún no hay usuarios inscritos en esta sesión.</div>
+          )}
+        </div>
+      </Card>
     </div>
   )
 }

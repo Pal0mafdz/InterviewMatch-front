@@ -14,6 +14,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: '📅', label: 'SESIONES', to: '/sessions' },
+  { icon: '📝', label: 'FEEDBACK', to: '/feedback' },
   { icon: '👤', label: 'PERFIL', to: '/profile' },
 ]
 

@@ -16,7 +16,7 @@ export function CreateSession() {
     setError(null)
     setLoading(true)
     try {
-      const session = await createSession({ nombre, fecha, descripcion: descripcion || undefined })
+      const session = await createSession({ titulo: nombre, fechaProgramada: fecha, descripcion: descripcion || undefined })
       navigate(`/admin/sessions/${session._id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear sesión')

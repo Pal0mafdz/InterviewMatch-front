@@ -11,6 +11,7 @@ import { MyMatch } from '../pages/user/MyMatch'
 import { AdminSessions } from '../pages/admin/AdminSessions'
 import { CreateSession } from '../pages/admin/CreateSession'
 import { AdminSessionDetail } from '../pages/admin/AdminSessionDetail'
+import { FeedbackStudioPage } from '../pages/feedback/FeedbackStudioPage'
 
 export function AppRouter() {
   return (
@@ -19,6 +20,9 @@ export function AppRouter() {
         {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/feedback" element={<FeedbackStudioPage />} />
+        <Route path="/feedback/:id" element={<FeedbackStudioPage />} />
+        <Route path="/feedback/view/:id" element={<FeedbackStudioPage />} />
 
         {/* User routes */}
         <Route path="/sessions" element={
