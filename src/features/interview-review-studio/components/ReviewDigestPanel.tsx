@@ -99,7 +99,7 @@ export function ReviewDigestPanel(props: ReviewDigestPanelProps) {
                 leftSection={props.viewLink.copied ? <Check size={14} /> : <ExternalLink size={14} />}
                 onClick={props.viewLink.onCopy}
               >
-                {props.viewLink.copied ? 'Feedback link copied' : 'Copy feedback link'}
+                {props.viewLink.copied ? 'View link copied' : 'Copy view link'}
               </Button>
             ) : null}
             {null}

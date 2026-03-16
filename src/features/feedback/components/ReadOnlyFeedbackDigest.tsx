@@ -102,7 +102,7 @@ export function ReadOnlyFeedbackDigest(props: ReadOnlyFeedbackDigestProps) {
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <Copy size={14} />
-                    {copied ? 'Copiado' : 'Copiar todo'}
+                    {copied ? 'Copied' : 'Copy feedback'}
                   </span>
                 </Button>
               </div>
