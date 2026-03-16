@@ -6,6 +6,8 @@ import { useAuth } from '../../context/useAuth'
 import { login as apiLogin } from '../../api/auth'
 import { toast } from 'react-hot-toast'
 
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+
 export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

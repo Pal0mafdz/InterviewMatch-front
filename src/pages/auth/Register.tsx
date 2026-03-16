@@ -6,6 +6,8 @@ import { useAuth } from '../../context/useAuth'
 import { register as apiRegister } from '../../api/auth'
 import { toast } from 'react-hot-toast'
 
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+
 export function Register() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
