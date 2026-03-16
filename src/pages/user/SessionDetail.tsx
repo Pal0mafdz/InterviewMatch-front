@@ -5,6 +5,7 @@ import { useAuth } from '../../context/useAuth'
 import { getSession, registerForSession, cancelRegistration } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
 import { formatDate } from '../../utils/date'
+import { ShareButton } from '../../components/ShareButton'
 
 function statusChip(estado: string) {
   const map: Record<string, [string, string]> = {
@@ -85,7 +86,15 @@ export function SessionDetail() {
             {formatDate(session.fechaProgramada, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        {statusChip(session.estado)}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <ShareButton
+            path={`/sessions/${session._id}`}
+            title={`Sesión: ${session.titulo}`}
+            description={session.descripcion ?? 'Sesión de mock interview en ninicode'}
+            label="Compartir"
+          />
+          {statusChip(session.estado)}
+        </div>
       </div>
 
       {session.descripcion && (

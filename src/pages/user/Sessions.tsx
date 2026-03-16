@@ -4,6 +4,7 @@ import { Button, Card } from 'pixel-retroui'
 import { getSessions } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
 import { formatDate } from '../../utils/date'
+import { ShareButton } from '../../components/ShareButton'
 
 function statusChip(estado: string) {
   const map: Record<string, [string, string]> = {
@@ -59,13 +60,14 @@ export function Sessions() {
                   <th>NOMBRE</th>
                   <th>FECHA</th>
                   <th>ESTADO</th>
+                  <th>COMPARTIR</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.length === 0 ? (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: 'center', padding: 24, fontFamily: "'Space Mono', monospace", color: '#7A4F2D' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: 24, fontFamily: "'Space Mono', monospace", color: '#7A4F2D' }}>
                       No hay sesiones disponibles
                     </td>
                   </tr>
@@ -75,6 +77,14 @@ export function Sessions() {
                       <td style={{ fontWeight: 700 }}>{s.titulo}</td>
                       <td>{formatDate(s.fechaProgramada, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                       <td>{statusChip(s.estado)}</td>
+                      <td>
+                        <ShareButton
+                          path={`/sessions/${s._id}`}
+                          title={`Sesión: ${s.titulo}`}
+                          description={`Únete a esta sesión de mock interview.`}
+                          label="Compartir"
+                        />
+                      </td>
                       <td>
                         <Button
                           bg="#C9521A"
