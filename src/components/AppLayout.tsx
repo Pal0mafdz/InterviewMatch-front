@@ -3,6 +3,7 @@ import { useAuth } from '../context/useAuth'
 import type { ReactNode } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { NiniLogo } from './NiniLogo'
+import { ShareButton } from './ShareButton'
 
 const SIDEBAR_BG = '#1A0F08'
 const SIDEBAR_ACTIVE = '#C9521A'
@@ -174,6 +175,12 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               boxShadow: '2px 2px 0 #1A0F08',
               padding: '6px 12px',
             }}>
+              <ShareButton
+                path={location.pathname}
+                title={title}
+                description="Compartí esta página de ninicode con tus colegas"
+                label="Compartir"
+              />
               <div className="retro-avatar retro-avatar-sm">
                 {user.nombre.charAt(0).toUpperCase()}
               </div>
