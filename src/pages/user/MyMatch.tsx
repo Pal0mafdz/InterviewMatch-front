@@ -143,11 +143,6 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                   </h2>
                 </div>
 
-                <div style={{ marginBottom: 16, fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D' }}>
-                  <span className="retro-label">🔒 PRIVACIDAD</span>
-                  El email de tu pareja no se comparte.
-                </div>
-
                 {partner.bio && (
                   <div style={{ marginBottom: 16 }}>
                     <span className="retro-label">💬 BIO</span>

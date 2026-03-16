@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
+import { STATIC_BASE_URL } from '../../api/constants'
+import type { PublicProfiles } from '../../api/users'
 import {
   acceptThreadProposal,
   createThreadEventSource,
@@ -87,16 +89,17 @@ function triggerDownload(blob: Blob, fileName: string) {
 
 const TYPING_IDLE_MS = 1800
 
-function formatLastMockLabel(sessionTitle: string | null, sessionDate: string | null) {
-  if (!sessionTitle && !sessionDate) {
-    return 'Última mock compartida'
-  }
+function platformLabel(platform: keyof PublicProfiles) {
+  return {
+    leetcode: 'LeetCode',
+    codeforces: 'Codeforces',
+    linkedin: 'LinkedIn',
+    github: 'GitHub',
+  }[platform]
+}
 
-  const datePart = sessionDate
-    ? formatDate(sessionDate, { day: 'numeric', month: 'short', year: 'numeric' })
-    : null
-
-  return [sessionTitle || 'Última mock compartida', datePart].filter(Boolean).join(' · ')
+function buildCvDownloadName(nombre: string | undefined) {
+  return `${nombre || 'Usuario'} - CV.pdf`
 }
 
 export function ChatHub() {
@@ -121,6 +124,7 @@ export function ChatHub() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [typingLabel, setTypingLabel] = useState<string | null>(null)
+  const [isPartnerProfileOpen, setIsPartnerProfileOpen] = useState(false)
 
   const [texto, setTexto] = useState('')
   const [proposalDateTime, setProposalDateTime] = useState('')
@@ -136,6 +140,13 @@ export function ChatHub() {
   const selectedThread = useMemo(
     () => threads.find((thread) => thread.threadId === selectedThreadId) || null,
     [threads, selectedThreadId]
+  )
+  const selectedParticipant = selectedThread?.participant || null
+  const selectedParticipantLinks = useMemo(
+    () => Object.entries(selectedParticipant?.publicProfiles || {}).filter(
+      (entry): entry is [keyof PublicProfiles, string] => typeof entry[1] === 'string' && entry[1].trim().length > 0
+    ),
+    [selectedParticipant]
   )
 
   useEffect(() => {
@@ -204,6 +215,7 @@ export function ChatHub() {
     if (!selectedThreadId) {
       setMessages([])
       setTypingLabel(null)
+      setIsPartnerProfileOpen(false)
       isTypingRef.current = false
       return
     }
@@ -422,6 +434,17 @@ export function ChatHub() {
     scheduleTypingStop()
   }
 
+  function handleTextInputKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) {
+      return
+    }
+
+    event.preventDefault()
+    if (!sending && texto.trim()) {
+      void handleSendText()
+    }
+  }
+
   return (
     <div>
       {error ? <div className="retro-alert retro-alert-error">{error}</div> : null}
@@ -468,17 +491,41 @@ export function ChatHub() {
 
         <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="retro-section-header" style={{ justifyContent: 'space-between' }}>
-            <div>
-              <h2>{selectedThread ? `CHAT CON ${selectedThread.participant.nombre.toUpperCase()}` : 'SELECCIONA UN CHAT'}</h2>
-              {selectedThread && threadContext?.detailsPath ? (
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginTop: 6 }}>
-                  {formatLastMockLabel(threadContext.sessionTitle, threadContext.sessionDate)}
-                </div>
-              ) : null}
-              {typingLabel ? (
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#C9521A', marginTop: 6 }}>
-                  {typingLabel}
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+              <h2 style={{ marginBottom: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {selectedThread ? 'CHAT CON' : 'SELECCIONA UN CHAT'}
+              </h2>
+              {selectedParticipant ? (
+                <button
+                  onClick={() => setIsPartnerProfileOpen(true)}
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'
+                    event.currentTarget.style.boxShadow = '4px 4px 0 #1A0F08'
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.transform = 'translateY(0) scale(1)'
+                    event.currentTarget.style.boxShadow = '2px 2px 0 #1A0F08'
+                  }}
+                  style={{
+                    marginTop: 8,
+                    border: '2px solid #1A0F08',
+                    background: '#FFF8D6',
+                    color: '#1A0F08',
+                    cursor: 'pointer',
+                    padding: '6px 10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '0.75rem',
+                    whiteSpace: 'nowrap',
+                    transition: 'transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease',
+                    boxShadow: '2px 2px 0 #1A0F08'
+                  }}
+                >
+                  <span className="retro-avatar retro-avatar-sm">{selectedParticipant.nombre?.charAt(0).toUpperCase() || '?'}</span>
+                  {selectedParticipant.nombre?.toUpperCase()}
+                </button>
               ) : null}
             </div>
             <div>
@@ -594,21 +641,45 @@ export function ChatHub() {
                 )
               })
             )}
+
+            {selectedThread && typingLabel ? (
+              <div style={{ position: 'sticky', bottom: 0, marginTop: 10, display: 'flex', justifyContent: 'flex-start', pointerEvents: 'none' }}>
+                <div
+                  style={{
+                    border: '2px solid #1A0F08',
+                    background: '#C9521A',
+                    color: '#FFFDF7',
+                    padding: '7px 10px',
+                    boxShadow: '2px 2px 0 #1A0F08',
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.01em'
+                  }}
+                >
+                  ✍️ {typingLabel}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {selectedThread ? (
             <div style={{ padding: 16, borderTop: '2px solid #1A0F08', display: 'grid', gap: 12 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
-                <input
+                <textarea
                   value={texto}
                   onChange={(event) => handleTextInputChange(event.target.value)}
+                  onKeyDown={handleTextInputKeyDown}
                   placeholder="Escribe un mensaje"
+                  rows={3}
                   style={{
                     border: '2px solid #1A0F08',
                     background: '#FBF3E3',
                     padding: '10px 12px',
                     fontFamily: "'Space Mono', monospace",
-                    fontSize: '0.8rem'
+                    fontSize: '0.8rem',
+                    resize: 'vertical',
+                    lineHeight: 1.4
                   }}
                 />
                 <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" onClick={handleSendText} disabled={sending || !texto.trim()}>
@@ -644,6 +715,83 @@ export function ChatHub() {
           ) : null}
         </Card>
       </div>
+
+      {isPartnerProfileOpen && selectedParticipant ? (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: 20
+          }}
+        >
+          <div style={{ position: 'relative', width: '100%', maxWidth: '420px' }}>
+            <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0 }}>
+              <div className="retro-section-header" style={{ justifyContent: 'space-between' }}>
+                <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.8rem', marginBottom: 0 }}>
+                  PERFIL DE {selectedParticipant.nombre?.toUpperCase()}
+                </h2>
+                <button
+                  onClick={() => setIsPartnerProfileOpen(false)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 'bold', color: '#1A0F08' }}
+                >
+                  X
+                </button>
+              </div>
+
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                  <div className="retro-avatar">{selectedParticipant.nombre?.charAt(0).toUpperCase() || '?'}</div>
+                  <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', marginBottom: 0 }}>
+                    {selectedParticipant.nombre}
+                  </h2>
+                </div>
+
+                {selectedParticipant.bio ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <span className="retro-label">💬 BIO</span>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.8rem', color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, fontStyle: 'italic' }}>
+                      {selectedParticipant.bio}
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedParticipantLinks.length > 0 ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {selectedParticipantLinks.map(([platform, value]) => (
+                        <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                          <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                            {platformLabel(platform as keyof PublicProfiles)}
+                          </Button>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedParticipant.cvPath ? (
+                  <div style={{ marginTop: 20 }}>
+                    <a href={`${STATIC_BASE_URL}${selectedParticipant.cvPath}`} download={buildCvDownloadName(selectedParticipant.nombre)} style={{ textDecoration: 'none' }}>
+                      <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
+                        ⬇ DESCARGAR CV
+                      </Button>
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -154,7 +154,7 @@ export function Profile() {
         <div className="retro-section-header"><h2>PERFIL PÚBLICO</h2></div>
         <div style={{ padding: 20, display: 'grid', gap: 16 }}>
           <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D', margin: 0 }}>
-            Esto es lo que tu pareja puede ver: tu nombre, bio, CV y enlaces públicos. Tu email no se comparte.
+            Esto es lo que tu pareja puede ver: tu nombre, bio, CV y enlaces públicos.
           </p>
 
           <div>
@@ -256,7 +256,6 @@ export function Profile() {
             <div className="retro-avatar">{nombre.trim().charAt(0).toUpperCase() || '?'}</div>
             <div>
               <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.65rem' }}>{nombre || 'Sin nombre'}</div>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', color: '#7A4F2D' }}>Email oculto para otros users</div>
             </div>
           </div>
 
