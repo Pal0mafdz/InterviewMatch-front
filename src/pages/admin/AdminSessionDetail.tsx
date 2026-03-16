@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
-import { cancelRegistration, getSession, registerForSession } from '../../api/sessions'
+import { cancelRegistration, getSession, registerForSession, updateSession } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
 import { createManualMatch, getSessionMatches, publishShuffle, removeManualMatch } from '../../api/matches'
 import { STATIC_BASE_URL } from '../../api/constants'
@@ -85,6 +85,12 @@ export function AdminSessionDetail() {
   const [enrolledSearch, setEnrolledSearch] = useState('')
   const [matchSearch, setMatchSearch] = useState('')
   const [selectedUserProfile, setSelectedUserProfile] = useState<SessionUserProfile | null>(null)
+  const [editTitulo, setEditTitulo] = useState('')
+  const [editFecha, setEditFecha] = useState('')
+  const [editDescripcion, setEditDescripcion] = useState('')
+  const [detailsSaving, setDetailsSaving] = useState(false)
+  const [detailsError, setDetailsError] = useState<string | null>(null)
+  const [detailsSuccess, setDetailsSuccess] = useState<string | null>(null)
 
   async function reloadSessionData(sessionId: string) {
     const [updatedSession, overview] = await Promise.all([
@@ -112,6 +118,16 @@ export function AdminSessionDetail() {
         setLoadingMatches(false)
       })
   }, [id])
+
+  useEffect(() => {
+    if (!session) {
+      return
+    }
+
+    setEditTitulo(session.titulo)
+    setEditFecha(session.fechaProgramada.slice(0, 10))
+    setEditDescripcion(session.descripcion ?? '')
+  }, [session])
 
   const currentAdminRegistration = session?.inscripciones?.find((insc) => (
     typeof insc.usuario !== 'string' && insc.usuario._id === user?._id
@@ -222,6 +238,42 @@ export function AdminSessionDetail() {
       setManualActionError(err instanceof Error ? err.message : 'Error al preparar el match manual')
     } finally {
       setManualActionLoading(false)
+    }
+  }
+
+  async function handleSaveDetails(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!id) {
+      return
+    }
+
+    setDetailsSaving(true)
+    setDetailsError(null)
+    setDetailsSuccess(null)
+
+    try {
+      const updatedSession = await updateSession(id, {
+        titulo: editTitulo,
+        fechaProgramada: editFecha,
+        descripcion: editDescripcion || undefined,
+      })
+
+      setSession((currentSession) => {
+        if (!currentSession) {
+          return updatedSession
+        }
+
+        return {
+          ...currentSession,
+          ...updatedSession,
+        }
+      })
+      setDetailsSuccess('Detalles actualizados correctamente.')
+    } catch (err) {
+      setDetailsError(err instanceof Error ? err.message : 'Error al actualizar la sesión')
+    } finally {
+      setDetailsSaving(false)
     }
   }
 
@@ -369,6 +421,65 @@ export function AdminSessionDetail() {
         </div>
         {statusChip(session.estado)}
       </div>
+
+      {session.descripcion && (
+        <div className="retro-alert retro-alert-info" style={{ marginBottom: 20 }}>
+          {session.descripcion}
+        </div>
+      )}
+
+      {session.estado === 'abierta' && (
+        <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
+          <div className="retro-section-header"><h2>✏️ EDITAR DETALLES</h2></div>
+          <form onSubmit={handleSaveDetails} style={{ padding: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
+                  TÍTULO
+                </div>
+                <input
+                  value={editTitulo}
+                  onChange={(event) => setEditTitulo(event.currentTarget.value)}
+                  required
+                  style={{ width: '100%', minHeight: 40, border: '2px solid #1A0F08', background: '#FFFDF7', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
+                />
+              </div>
+              <div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
+                  FECHA
+                </div>
+                <input
+                  type="date"
+                  value={editFecha}
+                  onChange={(event) => setEditFecha(event.currentTarget.value)}
+                  required
+                  style={{ width: '100%', minHeight: 40, border: '2px solid #1A0F08', background: '#FFFDF7', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
+                />
+              </div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
+                DESCRIPCIÓN
+              </div>
+              <textarea
+                value={editDescripcion}
+                onChange={(event) => setEditDescripcion(event.currentTarget.value)}
+                rows={4}
+                style={{ width: '100%', border: '2px solid #1A0F08', background: '#FFFDF7', padding: '10px', fontFamily: "'Space Mono', monospace", resize: 'vertical', boxSizing: 'border-box' }}
+              />
+            </div>
+            <Button
+              type="submit"
+              bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+              disabled={detailsSaving}
+            >
+              {detailsSaving ? 'GUARDANDO...' : 'GUARDAR DETALLES'}
+            </Button>
+            {detailsError && <div className="retro-alert retro-alert-error" style={{ marginTop: 14 }}>{detailsError}</div>}
+            {detailsSuccess && <div className="retro-alert retro-alert-success" style={{ marginTop: 14 }}>{detailsSuccess}</div>}
+          </form>
+        </Card>
+      )}
 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>

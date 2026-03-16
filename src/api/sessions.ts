@@ -48,3 +48,10 @@ export function createSession(data: { titulo: string; fechaProgramada: string; d
     body: JSON.stringify(data),
   })
 }
+
+export function updateSession(id: string, data: { titulo: string; fechaProgramada: string; descripcion?: string }): Promise<Session> {
+  return apiFetch<Session>(`/sessions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
