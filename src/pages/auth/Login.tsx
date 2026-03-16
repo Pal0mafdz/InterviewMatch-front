@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button, Card, Input } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { login as apiLogin } from '../../api/auth'
-import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+import { toast } from 'react-hot-toast'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -17,11 +17,18 @@ export function Login() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (password.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    
     setError(null)
     setLoading(true)
     try {
       const res = await apiLogin(email, password)
       login(res, res.token)
+      toast.success(`¡Bienvenido, ${res.nombre}!`)
       navigate('/sessions')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
