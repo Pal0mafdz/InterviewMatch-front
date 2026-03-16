@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react'
 import '@mantine/core/styles.css'
 import '../../features/feedback/index.css'
 import { FeedbackStudio } from '../../features/feedback/FeedbackStudio'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 type FeedbackErrorBoundaryProps = {
   children: ReactNode
@@ -75,6 +76,8 @@ const pageStyle: React.CSSProperties = {
 }
 
 export function FeedbackStudioPage() {
+  useDocumentTitle('Feedback Studio')
+
   return (
     <MantineProvider theme={feedbackTheme} defaultColorScheme="dark">
       <div style={pageStyle}>

@@ -18,6 +18,8 @@ export async function getFeedback(feedbackId: string, editKey?: string | null): 
   const viewKey = getFeedbackViewKeyFromLocation()
   const requestPath = isFeedbackDigestViewLocation() && viewKey
     ? `/api/feedback/public/${encodeURIComponent(feedbackId)}/view?k=${encodeURIComponent(viewKey)}`
+    : isFeedbackDigestViewLocation()
+      ? `/api/feedback/${encodeURIComponent(feedbackId)}`
     : editKey
       ? `/api/feedback/public/${encodeURIComponent(feedbackId)}?editKey=${encodeURIComponent(editKey)}`
       : `/api/feedback/${encodeURIComponent(feedbackId)}`

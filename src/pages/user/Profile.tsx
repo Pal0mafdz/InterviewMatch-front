@@ -5,6 +5,10 @@ import { getProfile, uploadCV } from '../../api/users'
 import type { UserProfile } from '../../api/users'
 import { STATIC_BASE_URL } from '../../api/constants'
 
+function buildCvDownloadName(nombre: string) {
+  return `${nombre} - CV.pdf`
+}
+
 export function Profile() {
   const { logout } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -31,7 +35,7 @@ export function Profile() {
     try {
       const res = await uploadCV(file)
       setUploadMsg('CV subido correctamente')
-      setProfile(prev => prev ? { ...prev, cv: res.cv } : prev)
+      setProfile(prev => prev ? { ...prev, cvPath: res.cvPath } : prev)
     } catch (err) { setUploadError(err instanceof Error ? err.message : 'Error') }
     finally { setUploading(false) }
   }
@@ -67,10 +71,10 @@ export function Profile() {
       <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 20 }}>
         <div className="retro-section-header"><h2>📄 CURRICULUM VITAE</h2></div>
         <div style={{ padding: 20 }}>
-          {profile.cv ? (
+          {profile.cvPath ? (
             <div className="retro-alert retro-alert-success" style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span>✓ CV cargado</span>
-              <a href={`${STATIC_BASE_URL}${profile.cv}`} target="_blank" rel="noreferrer"
+              <a href={`${STATIC_BASE_URL}${profile.cvPath}`} download={buildCvDownloadName(profile.nombre)} target="_blank" rel="noreferrer"
                 style={{ color: '#C9521A', fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem' }}>
                 VER →
               </a>

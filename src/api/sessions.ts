@@ -6,6 +6,15 @@ export interface Session {
   fechaProgramada: string
   estado: 'abierta' | 'publicada' | 'finalizada' | 'cancelada'
   descripcion?: string
+  totalPersonasRegistradas?: number
+  totalMocksActivas?: number
+  totalParesActivos?: number
+  totalMocksEmparejadas?: number
+  totalMocksPendientes?: number
+  totalParesManuales?: number
+  totalParesShuffle?: number
+  currentUserMockCount?: number
+  currentUserRegistered?: boolean
   inscripciones?: Array<{
     usuario: string | { _id: string; nombre?: string; email?: string; cvPath?: string; bio?: string; linkReunion?: string }
     mockCount: number

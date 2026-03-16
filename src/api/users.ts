@@ -5,7 +5,7 @@ export interface UserProfile {
   nombre: string
   email: string
   rol: 'user' | 'admin'
-  cv?: string
+  cvPath?: string
   bio?: string
 }
 
@@ -13,7 +13,7 @@ export function getProfile(): Promise<UserProfile> {
   return apiFetch<UserProfile>('/users/profile')
 }
 
-export function uploadCV(file: File): Promise<{ mensaje: string; cv: string }> {
+export function uploadCV(file: File): Promise<{ mensaje: string; cvPath: string }> {
   const formData = new FormData()
   formData.append('cv', file)
   return apiUpload('/users/upload-cv', formData)

@@ -5,11 +5,17 @@ import { getMyMatch } from '../../api/matches'
 import type { MyMatchResponse } from '../../api/matches'
 import { STATIC_BASE_URL } from '../../api/constants'
 
-function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
+function buildCvDownloadName(nombre: string | undefined) {
+  return `${nombre || 'Usuario'} - CV.pdf`
+}
+
+function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee }: {
   slot: number
   partner: any
   enlaceReunion?: string
   totalMocks: number
+  feedbackAsInterviewer?: { path: string } | null
+  feedbackAsInterviewee?: { path: string } | null
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -51,6 +57,28 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
               </a>
             </div>
           )}
+
+          {feedbackAsInterviewer || feedbackAsInterviewee ? (
+            <div style={{ marginTop: 18 }}>
+              <span className="retro-label">📝 FEEDBACK</span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {feedbackAsInterviewer ? (
+                  <a href={feedbackAsInterviewer.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
+                      DAR FEEDBACK
+                    </Button>
+                  </a>
+                ) : null}
+                {feedbackAsInterviewee ? (
+                  <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                      VER FEEDBACK SOBRE TI
+                    </Button>
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       </Card>
 
@@ -103,7 +131,7 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
 
                 {partner.cvPath && (
                   <div style={{ marginTop: 20 }}>
-                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download style={{ textDecoration: 'none' }}>
+                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
                       <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
                         ⬇ DESCARGAR CV
                       </Button>
@@ -164,8 +192,8 @@ export function MyMatch() {
         </p>
       )}
       {!matchData.matches[0] && !matchData.partner ? null : matchData.totalMocks === 1
-        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} totalMocks={1} />
-        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} totalMocks={matchData.totalMocks} />)
+        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} />
+        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} />)
       }
     </div>
   )

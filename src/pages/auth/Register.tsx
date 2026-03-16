@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button, Card, Input } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { register as apiRegister } from '../../api/auth'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 export function Register() {
   const [nombre, setNombre] = useState('')
@@ -12,6 +13,8 @@ export function Register() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  useDocumentTitle('Crear Cuenta')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

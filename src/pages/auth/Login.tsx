@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button, Card, Input } from 'pixel-retroui'
 import { useAuth } from '../../context/useAuth'
 import { login as apiLogin } from '../../api/auth'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -11,6 +12,8 @@ export function Login() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  useDocumentTitle('Iniciar Sesion')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import type { ReactNode } from 'react'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 const SIDEBAR_BG = '#1A0F08'
 const SIDEBAR_ACTIVE = '#C9521A'
@@ -14,7 +15,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: '📅', label: 'SESIONES', to: '/sessions' },
-  { icon: '📝', label: 'FEEDBACK', to: '/feedback' },
+  { icon: '🧰', label: 'ARSENAL', to: '/arsenal' },
   { icon: '👤', label: 'PERFIL', to: '/profile' },
 ]
 
@@ -32,6 +33,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  useDocumentTitle(title)
 
   const isAdmin = user?.rol === 'admin'
   const allNavItems = [...NAV_ITEMS, ...(isAdmin ? ADMIN_ITEMS : [])]

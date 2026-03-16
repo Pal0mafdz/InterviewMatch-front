@@ -8,6 +8,7 @@ import { Sessions } from '../pages/user/Sessions'
 import { SessionDetail } from '../pages/user/SessionDetail'
 import { Profile } from '../pages/user/Profile'
 import { MyMatch } from '../pages/user/MyMatch'
+import { Arsenal } from '../pages/user/Arsenal'
 import { AdminSessions } from '../pages/admin/AdminSessions'
 import { CreateSession } from '../pages/admin/CreateSession'
 import { AdminSessionDetail } from '../pages/admin/AdminSessionDetail'
@@ -50,6 +51,13 @@ export function AppRouter() {
           <ProtectedRoute>
             <AppLayout title="Mi Perfil">
               <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/arsenal" element={
+          <ProtectedRoute>
+            <AppLayout title="Arsenal Retro">
+              <Arsenal />
             </AppLayout>
           </ProtectedRoute>
         } />
