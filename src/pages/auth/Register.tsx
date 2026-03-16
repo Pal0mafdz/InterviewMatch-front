@@ -77,6 +77,7 @@ export function Register() {
                 <label className="retro-label" htmlFor="nombre">NOMBRE</label>
                 <Input
                   id="nombre"
+                  autoComplete="name"
                   type="text"
                   value={nombre}
                   onChange={e => setNombre(e.target.value)}
@@ -93,6 +94,7 @@ export function Register() {
                 <label className="retro-label" htmlFor="email">CORREO ELECTRÓNICO</label>
                 <Input
                   id="email"
+                  autoComplete="email"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -109,6 +111,7 @@ export function Register() {
                 <label className="retro-label" htmlFor="password">CONTRASEÑA</label>
                 <Input
                   id="password"
+                  autoComplete="new-password"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
