@@ -1,11 +1,13 @@
 import { apiFetch } from './client'
 
+import type { PublicProfiles } from './users'
+
 export interface MatchPartner {
   _id: string
   nombre: string
-  email: string
   bio?: string
   cvPath?: string
+  publicProfiles?: PublicProfiles
 }
 
 export interface MatchFeedbackLink {

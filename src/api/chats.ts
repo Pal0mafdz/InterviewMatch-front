@@ -1,3 +1,4 @@
+import type { PublicProfiles } from './users'
 import { apiFetch } from './client'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
@@ -5,7 +6,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 export interface ChatUserSummary {
   _id: string
   nombre: string
-  email: string
+  cvPath?: string
+  bio?: string
+  publicProfiles?: PublicProfiles
 }
 
 export interface ChatThreadPreview {
@@ -71,6 +74,11 @@ export interface ChatThreadContext {
   detailsUrl: string | null
 }
 
+export interface TypingStatusResponse {
+  threadId: string
+  isTyping: boolean
+}
+
 export function listMyThreads(): Promise<{ count: number; threads: ChatThreadPreview[] }> {
   return apiFetch('/chats/threads')
 }
@@ -109,6 +117,13 @@ export function sendThreadTextMessage(threadId: string, texto: string): Promise<
   return apiFetch(`/chats/threads/${encodeURIComponent(threadId)}/messages`, {
     method: 'POST',
     body: JSON.stringify({ texto })
+  })
+}
+
+export function setThreadTypingStatus(threadId: string, isTyping: boolean): Promise<TypingStatusResponse> {
+  return apiFetch(`/chats/threads/${encodeURIComponent(threadId)}/typing`, {
+    method: 'POST',
+    body: JSON.stringify({ isTyping })
   })
 }
 

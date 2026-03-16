@@ -11,6 +11,7 @@ import {
   getThreadMessages,
   listMyThreads,
   sendThreadProposal,
+  setThreadTypingStatus,
   sendThreadTextMessage,
   type ChatMessage,
   type ChatThreadPreview,
@@ -84,6 +85,20 @@ function triggerDownload(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url)
 }
 
+const TYPING_IDLE_MS = 1800
+
+function formatLastMockLabel(sessionTitle: string | null, sessionDate: string | null) {
+  if (!sessionTitle && !sessionDate) {
+    return 'Última mock compartida'
+  }
+
+  const datePart = sessionDate
+    ? formatDate(sessionDate, { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+
+  return [sessionTitle || 'Última mock compartida', datePart].filter(Boolean).join(' · ')
+}
+
 export function ChatHub() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -105,6 +120,7 @@ export function ChatHub() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [typingLabel, setTypingLabel] = useState<string | null>(null)
 
   const [texto, setTexto] = useState('')
   const [proposalDateTime, setProposalDateTime] = useState('')
@@ -113,6 +129,9 @@ export function ChatHub() {
   const [isPageVisible, setIsPageVisible] = useState(document.visibilityState === 'visible')
   const lastMessageAtRef = useRef<string | undefined>(undefined)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
+  const typingStopTimerRef = useRef<number | null>(null)
+  const typingVisibleTimerRef = useRef<number | null>(null)
+  const isTypingRef = useRef(false)
 
   const selectedThread = useMemo(
     () => threads.find((thread) => thread.threadId === selectedThreadId) || null,
@@ -184,6 +203,8 @@ export function ChatHub() {
   useEffect(() => {
     if (!selectedThreadId) {
       setMessages([])
+      setTypingLabel(null)
+      isTypingRef.current = false
       return
     }
 
@@ -212,6 +233,17 @@ export function ChatHub() {
   }, [selectedThreadId])
 
   useEffect(() => {
+    return () => {
+      if (typingStopTimerRef.current) {
+        window.clearTimeout(typingStopTimerRef.current)
+      }
+      if (typingVisibleTimerRef.current) {
+        window.clearTimeout(typingVisibleTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (!selectedThreadId || !isPageVisible) {
       return
     }
@@ -236,10 +268,34 @@ export function ChatHub() {
       setThreads((current) => updateThreadPreview(current, selectedThreadId, payload.acceptanceMessage))
     })
 
+    source.addEventListener('typing.updated', (event) => {
+      const payload = JSON.parse((event as MessageEvent<string>).data) as {
+        userId: string
+        isTyping: boolean
+        sender?: { nombre?: string }
+      }
+
+      if (payload.userId === user?._id) {
+        return
+      }
+
+      if (typingVisibleTimerRef.current) {
+        window.clearTimeout(typingVisibleTimerRef.current)
+      }
+
+      if (!payload.isTyping) {
+        setTypingLabel(null)
+        return
+      }
+
+      setTypingLabel(`${payload.sender?.nombre || selectedThread?.participant.nombre || 'Tu pareja'} está escribiendo...`)
+      typingVisibleTimerRef.current = window.setTimeout(() => setTypingLabel(null), TYPING_IDLE_MS + 700)
+    })
+
     return () => {
       source.close()
     }
-  }, [isPageVisible, selectedThreadId])
+  }, [isPageVisible, selectedThread, selectedThreadId, user?._id])
 
   async function handleSendText() {
     if (!selectedThreadId || !texto.trim()) {
@@ -254,6 +310,10 @@ export function ChatHub() {
       setMessages((current) => mergeMessage(current, created))
       setThreads((current) => updateThreadPreview(current, selectedThreadId, created))
       setTexto('')
+      if (typingStopTimerRef.current) {
+        window.clearTimeout(typingStopTimerRef.current)
+      }
+      void publishTypingState(false)
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'No se pudo enviar el mensaje')
     } finally {
@@ -314,6 +374,54 @@ export function ChatHub() {
     }
   }
 
+  async function publishTypingState(isTyping: boolean) {
+    if (!selectedThreadId) {
+      return
+    }
+
+    if (isTypingRef.current === isTyping) {
+      return
+    }
+
+    isTypingRef.current = isTyping
+
+    try {
+      await setThreadTypingStatus(selectedThreadId, isTyping)
+    } catch {
+      // Ignore ephemeral typing failures.
+    }
+  }
+
+  function scheduleTypingStop() {
+    if (typingStopTimerRef.current) {
+      window.clearTimeout(typingStopTimerRef.current)
+    }
+
+    typingStopTimerRef.current = window.setTimeout(() => {
+      void publishTypingState(false)
+    }, TYPING_IDLE_MS)
+  }
+
+  function handleTextInputChange(value: string) {
+    setTexto(value)
+
+    if (!selectedThreadId) {
+      return
+    }
+
+    if (!value.trim()) {
+      if (typingStopTimerRef.current) {
+        window.clearTimeout(typingStopTimerRef.current)
+      }
+
+      void publishTypingState(false)
+      return
+    }
+
+    void publishTypingState(true)
+    scheduleTypingStop()
+  }
+
   return (
     <div>
       {error ? <div className="retro-alert retro-alert-error">{error}</div> : null}
@@ -360,7 +468,19 @@ export function ChatHub() {
 
         <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden' }}>
           <div className="retro-section-header" style={{ justifyContent: 'space-between' }}>
-            <h2>{selectedThread ? `CHAT CON ${selectedThread.participant.nombre.toUpperCase()}` : 'SELECCIONA UN CHAT'}</h2>
+            <div>
+              <h2>{selectedThread ? `CHAT CON ${selectedThread.participant.nombre.toUpperCase()}` : 'SELECCIONA UN CHAT'}</h2>
+              {selectedThread && threadContext?.detailsPath ? (
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginTop: 6 }}>
+                  {formatLastMockLabel(threadContext.sessionTitle, threadContext.sessionDate)}
+                </div>
+              ) : null}
+              {typingLabel ? (
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#C9521A', marginTop: 6 }}>
+                  {typingLabel}
+                </div>
+              ) : null}
+            </div>
             <div>
               {threadContext?.detailsPath ? (
                 <Button
@@ -370,7 +490,7 @@ export function ChatHub() {
                   borderColor="#1A0F08"
                   onClick={() => navigate(threadContext.detailsPath || '/sessions')}
                 >
-                  DETALLES
+                  VER ULTIMA MOCK
                 </Button>
               ) : null}
             </div>
@@ -481,7 +601,7 @@ export function ChatHub() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
                 <input
                   value={texto}
-                  onChange={(event) => setTexto(event.target.value)}
+                  onChange={(event) => handleTextInputChange(event.target.value)}
                   placeholder="Escribe un mensaje"
                   style={{
                     border: '2px solid #1A0F08',

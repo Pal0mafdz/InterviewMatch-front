@@ -4,9 +4,19 @@ import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
 import type { MyMatchResponse } from '../../api/matches'
 import { STATIC_BASE_URL } from '../../api/constants'
+import type { PublicProfiles } from '../../api/users'
 
 function buildCvDownloadName(nombre: string | undefined) {
   return `${nombre || 'Usuario'} - CV.pdf`
+}
+
+function platformLabel(platform: keyof PublicProfiles) {
+  return {
+    leetcode: 'LeetCode',
+    codeforces: 'Codeforces',
+    linkedin: 'LinkedIn',
+    github: 'GitHub',
+  }[platform]
 }
 
 function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, onOpenChat }: {
@@ -19,6 +29,9 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
   onOpenChat?: (partnerId: string) => void
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const publicLinks = Object.entries(partner.publicProfiles || {}).filter(
+    (entry): entry is [keyof PublicProfiles, string] => typeof entry[1] === 'string' && entry[1].trim().length > 0
+  )
 
   if (!partner) {
     return (
@@ -130,9 +143,9 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                   </h2>
                 </div>
 
-                <div style={{ marginBottom: 16, fontFamily: "'Space Mono', monospace", fontSize: '0.78rem' }}>
-                  <span className="retro-label">✉ EMAIL</span>
-                  {partner.email}
+                <div style={{ marginBottom: 16, fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D' }}>
+                  <span className="retro-label">🔒 PRIVACIDAD</span>
+                  El email de tu pareja no se comparte.
                 </div>
 
                 {partner.bio && (
@@ -143,6 +156,21 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                     </div>
                   </div>
                 )}
+
+                {publicLinks.length > 0 ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {publicLinks.map(([platform, value]) => (
+                        <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                          <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                            {platformLabel(platform as keyof PublicProfiles)}
+                          </Button>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 {partner.cvPath && (
                   <div style={{ marginTop: 20 }}>
