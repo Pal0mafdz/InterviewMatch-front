@@ -1,5 +1,6 @@
-import { ExternalLink, FileText } from 'lucide-react'
-import { Badge, Box, Container, Paper, ScrollArea, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core'
+import { ExternalLink, FileText, Copy } from 'lucide-react'
+import { Badge, Box, Button, Container, Paper, ScrollArea, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core'
+import { useMemo, useState } from 'react'
 import { buildOverallRead, scoreLabel } from '../../interview-review-studio/lib/review-summary'
 import type { FeedbackDetailDto } from '../types'
 
@@ -41,15 +42,69 @@ export function ReadOnlyFeedbackDigest(props: ReadOnlyFeedbackDigestProps) {
     return left.type === 'link' ? -1 : 1
   })
 
+  const [copied, setCopied] = useState(false)
+
+  const copyAllText = useMemo(() => {
+    const lines: string[] = []
+
+    lines.push(digestTitle)
+    lines.push('')
+    lines.push('Candidate: ' + (feedback.context.candidateName ?? 'N/A'))
+    lines.push('Role: ' + (feedback.context.roleLabel ?? 'N/A'))
+    lines.push('Loop: ' + (feedback.context.interviewLoopLabel ?? 'N/A'))
+    lines.push('Date: ' + (feedback.context.dateLabel ?? 'N/A'))
+
+    lines.push('')
+    lines.push('Overall: ' + (feedback.summary.overallRead || buildOverallRead(normalizedDecision)))
+    lines.push('Decision: ' + normalizedDecision)
+
+    if (feedback.notesLines.length > 0) {
+      lines.push('')
+      lines.push('Notes:')
+      feedback.notesLines.forEach((line) => {
+        lines.push(`${line.timestamp ?? '--:--'}: ${line.raw}`)
+      })
+    }
+
+    if (feedback.references.length > 0) {
+      lines.push('')
+      lines.push('References / Statements:')
+      sortedReferences.forEach((reference) => {
+        const prefix = reference.type === 'link' ? 'Link' : 'Statement'
+        lines.push(`${prefix}: ${reference.label}`)
+      })
+    }
+
+    return lines.join('\n')
+  }, [feedback, digestTitle, normalizedDecision, sortedReferences])
+
+  async function handleCopyAll() {
+    await window.navigator.clipboard.writeText(copyAllText)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
   return (
     <div className="irs-shell">
       <Container size="lg" className="irs-container">
         <Stack gap="xl">
           <Paper className="irs-panel" radius={32} p={{ base: 'lg', md: 'xl' }}>
             <Stack gap="md">
-              <div>
-                <Text size="sm" c="dimmed">Feedback digest</Text>
-                <Title order={2}>{digestTitle}</Title>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <Text size="sm" c="dimmed">Feedback digest</Text>
+                  <Title order={2}>{digestTitle}</Title>
+                </div>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={handleCopyAll}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <Copy size={14} />
+                    {copied ? 'Copiado' : 'Copiar todo'}
+                  </span>
+                </Button>
               </div>
 
               <Stack gap="xs">
