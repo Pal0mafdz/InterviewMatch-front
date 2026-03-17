@@ -8,6 +8,7 @@ import { Sessions } from '../pages/user/Sessions'
 import { SessionDetail } from '../pages/user/SessionDetail'
 import { Profile } from '../pages/user/Profile'
 import { MyMatch } from '../pages/user/MyMatch'
+import { MyMocks } from '../pages/user/MyMocks'
 import { ChatHub } from '../pages/user/ChatHub'
 import { Arsenal } from '../pages/user/Arsenal'
 import { AdminSessions } from '../pages/admin/AdminSessions'
@@ -52,6 +53,13 @@ export function AppRouter() {
           <ProtectedRoute>
             <AppLayout title="Mi Perfil">
               <Profile />
+            </AppLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="/my-mocks" element={
+          <ProtectedRoute>
+            <AppLayout title="Mis Mocks">
+              <MyMocks />
             </AppLayout>
           </ProtectedRoute>
         } />

@@ -19,7 +19,7 @@ import {
   type ChatThreadPreview,
   type ChatUserSummary
 } from '../../api/chats'
-import { formatDate } from '../../utils/date'
+import { formatDate, getLocalTimeZoneLabel, localDateTimeInputToIso } from '../../utils/date'
 
 function asUser(value: ChatUserSummary | string | undefined | null): ChatUserSummary | null {
   if (!value || typeof value === 'string') {
@@ -129,6 +129,7 @@ export function ChatHub() {
   const [texto, setTexto] = useState('')
   const [proposalDateTime, setProposalDateTime] = useState('')
   const [proposalDuration, setProposalDuration] = useState(60)
+  const timezoneLabel = getLocalTimeZoneLabel()
 
   const [isPageVisible, setIsPageVisible] = useState(document.visibilityState === 'visible')
   const lastMessageAtRef = useRef<string | undefined>(undefined)
@@ -339,11 +340,17 @@ export function ChatHub() {
       return
     }
 
+    const isoProposalDateTime = localDateTimeInputToIso(proposalDateTime)
+    if (!isoProposalDateTime) {
+      setError('Fecha y hora inválidas para la propuesta')
+      return
+    }
+
     setSending(true)
     setError(null)
 
     try {
-      const created = await sendThreadProposal(selectedThreadId, new Date(proposalDateTime).toISOString(), proposalDuration)
+      const created = await sendThreadProposal(selectedThreadId, isoProposalDateTime, proposalDuration)
       setMessages((current) => mergeMessage(current, created))
       setThreads((current) => updateThreadPreview(current, selectedThreadId, created))
       setProposalDateTime('')
@@ -695,6 +702,7 @@ export function ChatHub() {
                     className="chat-proposal-datetime"
                     value={proposalDateTime}
                     onChange={(event) => setProposalDateTime(event.target.value)}
+                    step={60}
                     style={{ border: '2px solid #1A0F08', background: '#FBF3E3', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
                   />
                   <input
@@ -709,6 +717,9 @@ export function ChatHub() {
                   <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08" onClick={handleSendProposal} disabled={sending || !proposalDateTime}>
                     PROPONER
                   </Button>
+                </div>
+                <div style={{ marginTop: 8, fontFamily: "'Space Mono', monospace", fontSize: '0.7rem', color: '#7A4F2D' }}>
+                  Hora local: {timezoneLabel}. Se guarda en UTC y cada usuario la ve en su propio timezone.
                 </div>
               </div>
             </div>

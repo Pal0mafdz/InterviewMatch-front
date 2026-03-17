@@ -7,7 +7,7 @@ import { createManualMatch, getSessionMatches, publishShuffle, removeManualMatch
 import { STATIC_BASE_URL } from '../../api/constants'
 import type { SessionMatch, SessionMatchOverviewResponse } from '../../api/matches'
 import { useAuth } from '../../context/useAuth'
-import { formatDate } from '../../utils/date'
+import { formatDate, localDateTimeInputToIso, toDateTimeLocalInput } from '../../utils/date'
 
 type UnmatchedRegistration = NonNullable<SessionMatchOverviewResponse['unmatched']>[number]
 
@@ -39,17 +39,6 @@ function formatRegistrationOption(registration: UnmatchedRegistration) {
 
 function buildCvDownloadName(nombre?: string) {
   return `${nombre || 'Usuario'} - CV.pdf`
-}
-
-function toDateTimeLocalInput(value: string | Date) {
-  const d = typeof value === 'string' ? new Date(value) : value
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const year = d.getFullYear()
-  const month = pad(d.getMonth() + 1)
-  const day = pad(d.getDate())
-  const hours = pad(d.getHours())
-  const minutes = pad(d.getMinutes())
-  return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
 type SessionUserProfile = {
@@ -265,14 +254,14 @@ export function AdminSessionDetail() {
     setDetailsSuccess(null)
 
     try {
-      const parsed = new Date(editFecha)
-      if (Number.isNaN(parsed.getTime())) {
+      const isoDate = localDateTimeInputToIso(editFecha)
+      if (!isoDate) {
         throw new Error('Fecha y hora inválidas')
       }
 
       const updatedSession = await updateSession(id, {
         titulo: editTitulo,
-        fechaProgramada: parsed.toISOString(),
+        fechaProgramada: isoDate,
         descripcion: editDescripcion || undefined,
       })
 
@@ -463,12 +452,14 @@ export function AdminSessionDetail() {
               </div>
               <div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
-                  FECHA Y HORA
+                  FECHA DE CORTE
                 </div>
                 <input
                   type="datetime-local"
+                  className="chat-proposal-datetime"
                   value={editFecha}
                   onChange={(event) => setEditFecha(event.currentTarget.value)}
+                  step={60}
                   required
                   style={{ width: '100%', minHeight: 40, border: '2px solid #1A0F08', background: '#FFFDF7', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
                 />

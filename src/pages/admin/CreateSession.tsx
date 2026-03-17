@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Input } from 'pixel-retroui'
 import { createSession } from '../../api/sessions'
+import { localDateTimeInputToIso } from '../../utils/date'
 
 export function CreateSession() {
   const [nombre, setNombre] = useState('')
@@ -16,11 +17,11 @@ export function CreateSession() {
     setError(null)
     setLoading(true)
     try {
-      const parsed = new Date(fecha)
-      if (Number.isNaN(parsed.getTime())) {
+      const isoDate = localDateTimeInputToIso(fecha)
+      if (!isoDate) {
         throw new Error('Fecha y hora inválidas')
       }
-      const session = await createSession({ titulo: nombre, fechaProgramada: parsed.toISOString(), descripcion: descripcion || undefined })
+      const session = await createSession({ titulo: nombre, fechaProgramada: isoDate, descripcion: descripcion || undefined })
       navigate(`/admin/sessions/${session._id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear sesión')
@@ -58,11 +59,13 @@ export function CreateSession() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <span className="retro-label">FECHA Y HORA *</span>
+            <span className="retro-label">FECHA DE CORTE *</span>
             <input
               type="datetime-local"
+              className="chat-proposal-datetime"
               value={fecha}
               onChange={e => setFecha(e.target.value)}
+              step={60}
               required
               style={{
                 width: '100%',

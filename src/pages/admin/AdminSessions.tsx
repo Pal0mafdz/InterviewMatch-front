@@ -47,13 +47,18 @@ export function AdminSessions() {
         <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: '#C9521A' }}>CARGANDO...</div>
       )}
       {error && <div className="retro-alert retro-alert-error">{error}</div>}
+      {!loading && !error && (
+        <div style={{ marginBottom: 10, fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D' }}>
+          La columna FECHA CORTE se muestra en hora local del usuario.
+        </div>
+      )}
 
       {!loading && !error && (
         <table className="retro-table">
           <thead>
             <tr>
               <th>NOMBRE</th>
-              <th>FECHA</th>
+              <th>FECHA CORTE</th>
               <th>ESTADO</th>
               <th>INSCRITOS</th>
               <th></th>
@@ -70,7 +75,7 @@ export function AdminSessions() {
               sessions.map(s => (
                 <tr key={s._id}>
                   <td style={{ fontWeight: 700 }}>{s.titulo}</td>
-                  <td>{formatDate(s.fechaProgramada, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>{formatDate(s.fechaProgramada, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                   <td>{statusChip(s.estado)}</td>
                   <td>{s.inscripciones?.length ?? '—'}</td>
                   <td>
