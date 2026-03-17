@@ -6,6 +6,15 @@ export interface Session {
   fechaProgramada: string
   estado: 'abierta' | 'publicada' | 'finalizada' | 'cancelada'
   descripcion?: string
+  totalPersonasRegistradas?: number
+  totalMocksActivas?: number
+  totalParesActivos?: number
+  totalMocksEmparejadas?: number
+  totalMocksPendientes?: number
+  totalParesManuales?: number
+  totalParesShuffle?: number
+  currentUserMockCount?: number
+  currentUserRegistered?: boolean
   inscripciones?: Array<{
     usuario: string | { _id: string; nombre?: string; email?: string; cvPath?: string; bio?: string; linkReunion?: string }
     mockCount: number
@@ -36,6 +45,13 @@ export function cancelRegistration(id: string): Promise<{ mensaje: string }> {
 export function createSession(data: { titulo: string; fechaProgramada: string; descripcion?: string }): Promise<Session> {
   return apiFetch<Session>('/sessions', {
     method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateSession(id: string, data: { titulo: string; fechaProgramada: string; descripcion?: string }): Promise<Session> {
+  return apiFetch<Session>(`/sessions/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(data),
   })
 }

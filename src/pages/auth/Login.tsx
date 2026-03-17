@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Button, Card, Input } from 'pixel-retroui'
+import { Button, Card } from 'pixel-retroui'
+import { AuthBrand } from '../../components/AuthBrand'
 import { useAuth } from '../../context/useAuth'
 import { login as apiLogin } from '../../api/auth'
 import { toast } from 'react-hot-toast'
+
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -12,6 +15,8 @@ export function Login() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  useDocumentTitle('Iniciar Sesion')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,33 +47,12 @@ export function Login() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 16,
+      padding: '32px 16px',
     }}>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 28 }}>
-          <div style={{
-            width: 48,
-            height: 48,
-            backgroundColor: '#C9521A',
-            border: '3px solid #1A0F08',
-            boxShadow: '4px 4px 0 #1A0F08',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.5rem',
-          }}>🔥</div>
-          <span style={{
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: '0.75rem',
-            color: '#1A0F08',
-            lineHeight: 1.5,
-          }}>
-            INTERVIEW<br />MATCH
-          </span>
-        </div>
+      <div className="retro-auth-shell">
+        <AuthBrand />
 
-        <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden' }}>
+        <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', width: '100%' }}>
           <div className="retro-section-header">
             <h2>INICIAR SESIÓN</h2>
           </div>
@@ -82,36 +66,36 @@ export function Login() {
 
               <div className="retro-form-field">
                 <label className="retro-label" htmlFor="email">CORREO ELECTRÓNICO</label>
-                <Input
-                  id="email"
-                  autoComplete="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@correo.com"
-                  bg="#FBF3E3"
-                  textColor="#1A0F08"
-                  borderColor="#1A0F08"
-                  required
-                  icon="✉"
-                />
+                <div className="retro-auth-input-wrap">
+                  <input
+                    id="email"
+                    className="retro-auth-input"
+                    autoComplete="email"
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    required
+                  />
+                  <span className="retro-auth-input-icon" aria-hidden="true">✉</span>
+                </div>
               </div>
 
               <div className="retro-form-field">
                 <label className="retro-label" htmlFor="password">CONTRASEÑA</label>
-                <Input
-                  id="password"
-                  autoComplete="current-password"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  bg="#FBF3E3"
-                  textColor="#1A0F08"
-                  borderColor="#1A0F08"
-                  required
-                  icon="🔒"
-                />
+                <div className="retro-auth-input-wrap">
+                  <input
+                    id="password"
+                    className="retro-auth-input"
+                    autoComplete="current-password"
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <span className="retro-auth-input-icon" aria-hidden="true">🔒</span>
+                </div>
               </div>
 
               {loading && (

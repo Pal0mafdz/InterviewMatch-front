@@ -1,17 +1,37 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
 import type { MyMatchResponse } from '../../api/matches'
 import { STATIC_BASE_URL } from '../../api/constants'
+import type { PublicProfiles } from '../../api/users'
 
-function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
+function buildCvDownloadName(nombre: string | undefined) {
+  return `${nombre || 'Usuario'} - CV.pdf`
+}
+
+function platformLabel(platform: keyof PublicProfiles) {
+  return {
+    leetcode: 'LeetCode',
+    codeforces: 'Codeforces',
+    linkedin: 'LinkedIn',
+    github: 'GitHub',
+  }[platform]
+}
+
+function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, onOpenChat }: {
   slot: number
   partner: any
   enlaceReunion?: string
   totalMocks: number
+  feedbackAsInterviewer?: { path: string } | null
+  feedbackAsInterviewee?: { path: string } | null
+  onOpenChat?: (partnerId: string) => void
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const publicLinks = Object.entries(partner.publicProfiles || {}).filter(
+    (entry): entry is [keyof PublicProfiles, string] => typeof entry[1] === 'string' && entry[1].trim().length > 0
+  )
 
   if (!partner) {
     return (
@@ -51,6 +71,42 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
               </a>
             </div>
           )}
+
+          {feedbackAsInterviewer || feedbackAsInterviewee ? (
+            <div style={{ marginTop: 18 }}>
+              <span className="retro-label">📝 FEEDBACK</span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {feedbackAsInterviewer ? (
+                  <a href={feedbackAsInterviewer.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
+                      DAR FEEDBACK
+                    </Button>
+                  </a>
+                ) : null}
+                {feedbackAsInterviewee ? (
+                  <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                      VER TU FEEDBACK
+                    </Button>
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {partner._id ? (
+            <div style={{ marginTop: 14 }}>
+              <Button
+                bg="#FBF3E3"
+                textColor="#1A0F08"
+                shadow="#1A0F08"
+                borderColor="#1A0F08"
+                onClick={() => onOpenChat?.(partner._id)}
+              >
+                ABRIR CHAT
+              </Button>
+            </div>
+          ) : null}
         </div>
       </Card>
 
@@ -87,11 +143,6 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
                   </h2>
                 </div>
 
-                <div style={{ marginBottom: 16, fontFamily: "'Space Mono', monospace", fontSize: '0.78rem' }}>
-                  <span className="retro-label">✉ EMAIL</span>
-                  {partner.email}
-                </div>
-
                 {partner.bio && (
                   <div style={{ marginBottom: 16 }}>
                     <span className="retro-label">💬 BIO</span>
@@ -101,9 +152,24 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
                   </div>
                 )}
 
+                {publicLinks.length > 0 ? (
+                  <div style={{ marginBottom: 16 }}>
+                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {publicLinks.map(([platform, value]) => (
+                        <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                          <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                            {platformLabel(platform as keyof PublicProfiles)}
+                          </Button>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {partner.cvPath && (
                   <div style={{ marginTop: 20 }}>
-                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download style={{ textDecoration: 'none' }}>
+                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
                       <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
                         ⬇ DESCARGAR CV
                       </Button>
@@ -121,6 +187,7 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks }: {
 
 export function MyMatch() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [matchData, setMatchData] = useState<MyMatchResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [notPublished, setNotPublished] = useState(false)
@@ -164,8 +231,8 @@ export function MyMatch() {
         </p>
       )}
       {!matchData.matches[0] && !matchData.partner ? null : matchData.totalMocks === 1
-        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} totalMocks={1} />
-        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} totalMocks={matchData.totalMocks} />)
+        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
+        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
       }
     </div>
   )

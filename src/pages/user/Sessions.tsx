@@ -3,6 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { getSessions } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
+import { formatDate } from '../../utils/date'
+
+type SessionFilter = 'all' | 'abierta' | 'publicada'
+
+function sortByCutoffDate(left: Session, right: Session) {
+  const leftAt = new Date(left.fechaProgramada).getTime()
+  const rightAt = new Date(right.fechaProgramada).getTime()
+
+  if (!Number.isFinite(leftAt) && !Number.isFinite(rightAt)) {
+    return 0
+  }
+
+  if (!Number.isFinite(leftAt)) {
+    return 1
+  }
+
+  if (!Number.isFinite(rightAt)) {
+    return -1
+  }
+
+  return rightAt - leftAt
+}
 
 function statusChip(estado: string) {
   const map: Record<string, [string, string]> = {
@@ -17,6 +39,7 @@ function statusChip(estado: string) {
 
 export function Sessions() {
   const [sessions, setSessions] = useState<Session[]>([])
+  const [filter, setFilter] = useState<SessionFilter>('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -27,6 +50,15 @@ export function Sessions() {
       .catch(err => setError(err instanceof Error ? err.message : 'Error'))
       .finally(() => setLoading(false))
   }, [])
+
+  const orderedSessions = [...sessions].sort(sortByCutoffDate)
+  const visibleSessions = orderedSessions.filter((session) => {
+    if (filter === 'all') {
+      return true
+    }
+
+    return session.estado === filter
+  })
 
   return (
     <div>
@@ -51,28 +83,56 @@ export function Sessions() {
           <div className="retro-section-header">
             <h2>LISTA DE SESIONES</h2>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 12px 8px 12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', fontWeight: 700 }}>
+                MOSTRAR
+              </span>
+              <select
+                value={filter}
+                onChange={(event) => setFilter(event.currentTarget.value as SessionFilter)}
+                style={{
+                  minHeight: 34,
+                  border: '2px solid #1A0F08',
+                  background: '#FFFDF7',
+                  color: '#1A0F08',
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '4px 8px',
+                }}
+              >
+                <option value="all">TODAS</option>
+                <option value="abierta">ABIERTA</option>
+                <option value="publicada">PUBLICADA</option>
+              </select>
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D' }}>
+              {visibleSessions.length} resultado{visibleSessions.length === 1 ? '' : 's'}
+            </div>
+          </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="retro-table">
               <thead>
                 <tr>
                   <th>NOMBRE</th>
-                  <th>FECHA</th>
+                  <th>CIERRE</th>
                   <th>ESTADO</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {sessions.length === 0 ? (
+                {visibleSessions.length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ textAlign: 'center', padding: 24, fontFamily: "'Space Mono', monospace", color: '#7A4F2D' }}>
-                      No hay sesiones disponibles
+                      No hay sesiones para este filtro
                     </td>
                   </tr>
                 ) : (
-                  sessions.map(s => (
+                  visibleSessions.map(s => (
                     <tr key={s._id}>
                       <td style={{ fontWeight: 700 }}>{s.titulo}</td>
-                      <td>{new Date(s.fechaProgramada).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                      <td>{formatDate(s.fechaProgramada, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                       <td>{statusChip(s.estado)}</td>
                       <td>
                         <Button

@@ -1,6 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import type { ReactNode } from 'react'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { NiniLogo } from './NiniLogo'
 
 const SIDEBAR_BG = '#1A0F08'
 const SIDEBAR_ACTIVE = '#C9521A'
@@ -14,7 +16,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: '📅', label: 'SESIONES', to: '/sessions' },
-  { icon: '📝', label: 'FEEDBACK', to: '/feedback' },
+  { icon: '🗂️', label: 'MOCKS', to: '/my-mocks' },
+  { icon: '💬', label: 'CHAT', to: '/chats' },
+  { icon: '🧰', label: 'ARSENAL', to: '/arsenal' },
   { icon: '👤', label: 'PERFIL', to: '/profile' },
 ]
 
@@ -32,6 +36,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  useDocumentTitle(title)
 
   const isAdmin = user?.rol === 'admin'
   const allNavItems = [...NAV_ITEMS, ...(isAdmin ? ADMIN_ITEMS : [])]
@@ -59,20 +65,20 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         <div
           onClick={() => navigate('/sessions')}
           style={{
-            width: 44,
-            height: 44,
-            backgroundColor: SIDEBAR_ACTIVE,
-            border: '3px solid #FBF3E3',
-            boxShadow: '3px 3px 0 #FBF3E3',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 28,
             cursor: 'pointer',
-            fontSize: '1.4rem',
           }}
         >
-          🔥
+          <NiniLogo
+            size={44}
+            shadowOffset={3}
+            borderWidth={3}
+            inset={6}
+            className="nini-logo--sidebar"
+          />
         </div>
 
         {/* Nav items */}

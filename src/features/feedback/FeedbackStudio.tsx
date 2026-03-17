@@ -5,7 +5,7 @@ import { ReadOnlyFeedbackDigest } from './components/ReadOnlyFeedbackDigest'
 import { FeedbackEditor } from './FeedbackEditor'
 import { PublicFeedbackEntry } from './components/PublicFeedbackEntry'
 import { useFeedbackEditor } from './hooks/useFeedbackEditor'
-import { buildAbsoluteFeedbackDigestUrl, buildCurrentFeedbackEditorUrl } from './lib/location'
+import { buildAbsoluteFeedbackDigestUrl, buildCurrentFeedbackEditorUrl, buildFeedbackEditorPath } from './lib/location'
 import { useDocumentTitle } from '../interview-review-studio/hooks/useDocumentTitle'
 
 function buildDocumentTitle(candidateName?: string | null) {
@@ -29,17 +29,25 @@ export function FeedbackStudio() {
   useDocumentTitle(buildDocumentTitle(candidateName))
 
   async function copyEditorLink() {
-    await window.navigator.clipboard.writeText(buildCurrentFeedbackEditorUrl())
+    const editorUrl = state.feedbackId
+      ? `${window.location.origin}${buildFeedbackEditorPath(state.feedbackId, state.editKey)}`
+      : buildCurrentFeedbackEditorUrl()
+
+    await window.navigator.clipboard.writeText(editorUrl)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1800)
   }
 
   async function copyViewLink() {
-    if (!state.feedbackId || !state.viewKey) {
+    if (!state.feedbackId) {
       return
     }
 
-    await window.navigator.clipboard.writeText(buildAbsoluteFeedbackDigestUrl(state.feedbackId, state.viewKey))
+    const viewUrl = state.viewKey
+      ? buildAbsoluteFeedbackDigestUrl(state.feedbackId, state.viewKey)
+      : `${window.location.origin}/feedback/${state.feedbackId}`
+
+    await window.navigator.clipboard.writeText(viewUrl)
     setViewLinkCopied(true)
     window.setTimeout(() => setViewLinkCopied(false), 1800)
   }
@@ -85,12 +93,12 @@ export function FeedbackStudio() {
 
       <FeedbackEditor
         context={state.context}
-        editLink={state.editKey ? {
+        editLink={state.feedbackId ? {
           copied,
           onCopy: copyEditorLink,
         } : null}
         isReadOnly={state.isReadOnly}
-        viewLink={state.viewKey ? {
+        viewLink={state.feedbackId ? {
           copied: viewLinkCopied,
           onCopy: copyViewLink,
         } : null}
