@@ -429,7 +429,7 @@ export function AdminSessionDetail() {
       </div>
 
       {session.descripcion && (
-        <div className="retro-alert retro-alert-info" style={{ marginBottom: 20 }}>
+        <div className="retro-alert retro-alert-info" style={{ marginBottom: 20, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
           {session.descripcion}
         </div>
       )}
