@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
+import { getThreadByPartner, getThreadMessages } from '../../api/chats'
 import { getSession, getSessions } from '../../api/sessions'
 import { formatDate } from '../../utils/date'
 
@@ -11,12 +12,14 @@ type MockHistoryItem = {
   id: string
   mockLabel: string
   cutoffDate: string
+  agreedDate: string | null
+  referenceDate: string
   partnerName: string
   detailsPath: string
 }
 
-function sortByMostRecentCutoff(left: MockHistoryItem, right: MockHistoryItem) {
-  return new Date(right.cutoffDate).getTime() - new Date(left.cutoffDate).getTime()
+function sortByMostRecentReference(left: MockHistoryItem, right: MockHistoryItem) {
+  return new Date(right.referenceDate).getTime() - new Date(left.referenceDate).getTime()
 }
 
 function timingChip(isUpcoming: boolean) {
@@ -32,7 +35,7 @@ function matchesFilter(item: MockHistoryItem, filter: HistoryFilter) {
     return true
   }
 
-  const isUpcoming = new Date(item.cutoffDate).getTime() > Date.now()
+  const isUpcoming = !item.agreedDate || new Date(item.agreedDate).getTime() > Date.now()
   return filter === 'upcoming' ? isUpcoming : !isUpcoming
 }
 
@@ -62,18 +65,29 @@ export function MyMocks() {
               }
 
               const totalMocks = sessionDetail.currentUserMockCount
-              let mockPartners: string[] = []
+              let mockPartners: Array<{ id: string; name: string }> = []
               let detailsPath = `/sessions/${session._id}`
 
               try {
                 const myMatch = await getMyMatch(session._id)
                 const matchPartners = myMatch.matches
-                  .map((match) => match.partner?.nombre)
-                  .filter((name): name is string => Boolean(name))
+                  .map((match) => {
+                    if (!match.partner?._id) {
+                      return null
+                    }
+
+                    return {
+                      id: match.partner._id,
+                      name: match.partner.nombre || 'Sin pareja aun'
+                    }
+                  })
+                  .filter((partner): partner is { id: string; name: string } => Boolean(partner))
 
                 mockPartners = matchPartners.length > 0
                   ? matchPartners
-                  : (myMatch.partner?.nombre ? [myMatch.partner.nombre] : [])
+                  : (myMatch.partner?._id
+                    ? [{ id: myMatch.partner._id, name: myMatch.partner.nombre || 'Sin pareja aun' }]
+                    : [])
 
                 detailsPath = `/sessions/${session._id}/match`
               } catch (matchError) {
@@ -84,16 +98,46 @@ export function MyMocks() {
               }
 
               while (mockPartners.length < totalMocks) {
-                mockPartners.push('Sin pareja')
+                mockPartners.push({ id: '', name: 'Sin pareja aun' })
               }
 
-              return mockPartners.slice(0, totalMocks).map((partnerName, index) => ({
-                id: `${sessionDetail._id}-${index + 1}`,
-                mockLabel: `${sessionDetail.titulo} · MOCK #${index + 1}`,
-                cutoffDate: sessionDetail.fechaProgramada,
-                partnerName,
-                detailsPath,
+              const items = await Promise.all(mockPartners.slice(0, totalMocks).map(async (partner, index) => {
+                let agreedDate: string | null = null
+
+                if (partner.id) {
+                  try {
+                    const thread = await getThreadByPartner(partner.id)
+                    const messages = await getThreadMessages(thread.threadId, { limit: 100 })
+                    const latestAccepted = [...messages.messages].reverse().find((message) => (
+                      message.type === 'proposal-accepted'
+                        ? Boolean(message.proposalAccepted?.proposedDateTime)
+                        : Boolean(message.proposal?.status === 'accepted' && message.proposal?.proposedDateTime)
+                    ))
+
+                    if (latestAccepted?.type === 'proposal-accepted') {
+                      agreedDate = latestAccepted.proposalAccepted?.proposedDateTime || null
+                    } else if (latestAccepted?.type === 'proposal') {
+                      agreedDate = latestAccepted.proposal?.proposedDateTime || null
+                    }
+                  } catch {
+                    agreedDate = null
+                  }
+                }
+
+                const referenceDate = agreedDate || new Date(Date.now() + (1000 * 60 * 60 * 24 * 365)).toISOString()
+
+                return {
+                  id: `${sessionDetail._id}-${index + 1}`,
+                  mockLabel: `${sessionDetail.titulo} · MOCK #${index + 1}`,
+                  cutoffDate: sessionDetail.fechaProgramada,
+                  agreedDate,
+                  referenceDate,
+                  partnerName: partner.name || 'Sin pareja aun',
+                  detailsPath,
+                }
               }))
+
+              return items
             } catch {
               return [] as MockHistoryItem[]
             }
@@ -104,7 +148,7 @@ export function MyMocks() {
           return
         }
 
-        setHistory(groupedItems.flat().sort(sortByMostRecentCutoff))
+        setHistory(groupedItems.flat().sort(sortByMostRecentReference))
       } catch (nextError) {
         if (!mounted) {
           return
@@ -189,7 +233,7 @@ export function MyMocks() {
               <thead>
                 <tr>
                   <th>MOCK</th>
-                  <th>CIERRE</th>
+                  <th>FECHA MOCK</th>
                   <th>ESTADO</th>
                   <th>PAREJA</th>
                   <th></th>
@@ -206,8 +250,8 @@ export function MyMocks() {
                   filteredHistory.map((item) => (
                     <tr key={item.id}>
                       <td style={{ fontWeight: 700 }}>{item.mockLabel}</td>
-                      <td>{formatDate(item.cutoffDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                      <td>{timingChip(new Date(item.cutoffDate).getTime() > Date.now())}</td>
+                      <td>{formatDate(item.agreedDate || item.cutoffDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>{timingChip(!item.agreedDate || new Date(item.agreedDate).getTime() > Date.now())}</td>
                       <td>{item.partnerName}</td>
                       <td>
                         <Button

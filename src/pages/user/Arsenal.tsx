@@ -36,6 +36,13 @@ const fieldResources: LinkCard[] = [
     href: 'https://www.jointaro.com/interviews/',
   },
   {
+    title: 'NeetCode System Design',
+    tag: 'SYS',
+    body: 'Práctica guiada de system design con problemas y recorrido específico dentro de NeetCode.',
+    actionLabel: 'ABRIR SYSTEM DESIGN',
+    href: 'https://neetcode.io/practice/practice/systemDesign',
+  },
+  {
     title: 'Roadmap de Frontend',
     tag: 'WEB',
     body: 'Mapa visual para repasar fundamentos, herramientas y temas avanzados de frontend.',
@@ -60,8 +67,8 @@ const fieldResources: LinkCard[] = [
     title: 'Behavioural Bank',
     tag: 'SOFT',
     body: 'Banco rápido de prompts para responder con método STAR y preparar historias con impacto.',
-    actionLabel: 'ABRIR STAR',
-    href: 'https://www.indeed.com/career-advice/interviewing/star-interview-method',
+    actionLabel: 'ABRIR BEHAVIORAL',
+    href: 'https://igotanoffer.com/blogs/tech/behavioral-interview-questions#most-asked',
   },
   {
     title: 'System Design Primer',
@@ -69,13 +76,6 @@ const fieldResources: LinkCard[] = [
     body: 'Referencia para repasar conceptos de diseño de sistemas, escalado y patrones.',
     actionLabel: 'ESTUDIAR',
     href: 'https://github.com/donnemartin/system-design-primer',
-  },
-  {
-    title: 'NeetCode System Design',
-    tag: 'SYS',
-    body: 'Práctica guiada de system design con problemas y recorrido específico dentro de NeetCode.',
-    actionLabel: 'ABRIR SYSTEM DESIGN',
-    href: 'https://neetcode.io/practice/practice/systemDesign',
   },
 ]
 
