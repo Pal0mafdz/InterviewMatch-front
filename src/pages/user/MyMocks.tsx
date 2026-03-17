@@ -15,6 +15,7 @@ type MockHistoryItem = {
   agreedDate: string | null
   referenceDate: string
   partnerName: string
+  partnerId: string | null
   detailsPath: string
 }
 
@@ -133,6 +134,7 @@ export function MyMocks() {
                   agreedDate,
                   referenceDate,
                   partnerName: partner.name || 'Sin pareja aun',
+                  partnerId: partner.id || null,
                   detailsPath,
                 }
               }))
@@ -232,7 +234,7 @@ export function MyMocks() {
             <table className="retro-table">
               <thead>
                 <tr>
-                  <th>MOCK</th>
+                  <th>SESIÓN / MOCK</th>
                   <th>FECHA MOCK</th>
                   <th>ESTADO</th>
                   <th>PAREJA</th>
@@ -249,10 +251,71 @@ export function MyMocks() {
                 ) : (
                   filteredHistory.map((item) => (
                     <tr key={item.id}>
-                      <td style={{ fontWeight: 700 }}>{item.mockLabel}</td>
-                      <td>{formatDate(item.agreedDate || item.cutoffDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => navigate(item.detailsPath)}
+                          style={{
+                            border: '2px solid #1A0F08',
+                            background: '#FFF8D6',
+                            color: '#1A0F08',
+                            fontFamily: "'Space Mono', monospace",
+                            fontWeight: 700,
+                            fontSize: '0.76rem',
+                            padding: '6px 8px',
+                            cursor: 'pointer',
+                            transition: 'transform 160ms ease, box-shadow 160ms ease',
+                            boxShadow: '2px 2px 0 #1A0F08',
+                          }}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.transform = 'translateY(-2px)'
+                            event.currentTarget.style.boxShadow = '4px 4px 0 #1A0F08'
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.transform = 'translateY(0)'
+                            event.currentTarget.style.boxShadow = '2px 2px 0 #1A0F08'
+                          }}
+                        >
+                          {item.mockLabel}
+                        </button>
+                      </td>
+                      <td>
+                        {item.agreedDate
+                          ? formatDate(item.agreedDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                          : 'Por acordar'}
+                      </td>
                       <td>{timingChip(!item.agreedDate || new Date(item.agreedDate).getTime() > Date.now())}</td>
-                      <td>{item.partnerName}</td>
+                      <td>
+                        {item.partnerId ? (
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/chats?userId=${encodeURIComponent(item.partnerId || '')}`)}
+                            style={{
+                              border: '2px solid #1A0F08',
+                              background: '#FBF3E3',
+                              color: '#1A0F08',
+                              fontFamily: "'Space Mono', monospace",
+                              fontSize: '0.76rem',
+                              padding: '6px 8px',
+                              cursor: 'pointer',
+                              transition: 'transform 160ms ease, box-shadow 160ms ease',
+                              boxShadow: '2px 2px 0 #1A0F08',
+                            }}
+                            onMouseEnter={(event) => {
+                              event.currentTarget.style.transform = 'translateY(-2px)'
+                              event.currentTarget.style.boxShadow = '4px 4px 0 #1A0F08'
+                            }}
+                            onMouseLeave={(event) => {
+                              event.currentTarget.style.transform = 'translateY(0)'
+                              event.currentTarget.style.boxShadow = '2px 2px 0 #1A0F08'
+                            }}
+                          >
+                            {item.partnerName}
+                          </button>
+                        ) : (
+                          'Sin pareja aun'
+                        )}
+                      </td>
                       <td>
                         <Button
                           bg="#C9521A"
