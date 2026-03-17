@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
 import { getMyMatch } from '../../api/matches'
+import { getThreadByPartner, getThreadMessages } from '../../api/chats'
 import { getSession, getSessions } from '../../api/sessions'
 import { formatDate } from '../../utils/date'
 
@@ -11,12 +12,15 @@ type MockHistoryItem = {
   id: string
   mockLabel: string
   cutoffDate: string
+  agreedDate: string | null
+  referenceDate: string
   partnerName: string
+  partnerId: string | null
   detailsPath: string
 }
 
-function sortByMostRecentCutoff(left: MockHistoryItem, right: MockHistoryItem) {
-  return new Date(right.cutoffDate).getTime() - new Date(left.cutoffDate).getTime()
+function sortByMostRecentReference(left: MockHistoryItem, right: MockHistoryItem) {
+  return new Date(right.referenceDate).getTime() - new Date(left.referenceDate).getTime()
 }
 
 function timingChip(isUpcoming: boolean) {
@@ -32,7 +36,7 @@ function matchesFilter(item: MockHistoryItem, filter: HistoryFilter) {
     return true
   }
 
-  const isUpcoming = new Date(item.cutoffDate).getTime() > Date.now()
+  const isUpcoming = !item.agreedDate || new Date(item.agreedDate).getTime() > Date.now()
   return filter === 'upcoming' ? isUpcoming : !isUpcoming
 }
 
@@ -62,18 +66,29 @@ export function MyMocks() {
               }
 
               const totalMocks = sessionDetail.currentUserMockCount
-              let mockPartners: string[] = []
+              let mockPartners: Array<{ id: string; name: string }> = []
               let detailsPath = `/sessions/${session._id}`
 
               try {
                 const myMatch = await getMyMatch(session._id)
                 const matchPartners = myMatch.matches
-                  .map((match) => match.partner?.nombre)
-                  .filter((name): name is string => Boolean(name))
+                  .map((match) => {
+                    if (!match.partner?._id) {
+                      return null
+                    }
+
+                    return {
+                      id: match.partner._id,
+                      name: match.partner.nombre || 'Sin pareja aun'
+                    }
+                  })
+                  .filter((partner): partner is { id: string; name: string } => Boolean(partner))
 
                 mockPartners = matchPartners.length > 0
                   ? matchPartners
-                  : (myMatch.partner?.nombre ? [myMatch.partner.nombre] : [])
+                  : (myMatch.partner?._id
+                    ? [{ id: myMatch.partner._id, name: myMatch.partner.nombre || 'Sin pareja aun' }]
+                    : [])
 
                 detailsPath = `/sessions/${session._id}/match`
               } catch (matchError) {
@@ -84,16 +99,47 @@ export function MyMocks() {
               }
 
               while (mockPartners.length < totalMocks) {
-                mockPartners.push('Sin pareja')
+                mockPartners.push({ id: '', name: 'Sin pareja aun' })
               }
 
-              return mockPartners.slice(0, totalMocks).map((partnerName, index) => ({
-                id: `${sessionDetail._id}-${index + 1}`,
-                mockLabel: `${sessionDetail.titulo} · MOCK #${index + 1}`,
-                cutoffDate: sessionDetail.fechaProgramada,
-                partnerName,
-                detailsPath,
+              const items = await Promise.all(mockPartners.slice(0, totalMocks).map(async (partner, index) => {
+                let agreedDate: string | null = null
+
+                if (partner.id) {
+                  try {
+                    const thread = await getThreadByPartner(partner.id)
+                    const messages = await getThreadMessages(thread.threadId, { limit: 100 })
+                    const latestAccepted = [...messages.messages].reverse().find((message) => (
+                      message.type === 'proposal-accepted'
+                        ? Boolean(message.proposalAccepted?.proposedDateTime)
+                        : Boolean(message.proposal?.status === 'accepted' && message.proposal?.proposedDateTime)
+                    ))
+
+                    if (latestAccepted?.type === 'proposal-accepted') {
+                      agreedDate = latestAccepted.proposalAccepted?.proposedDateTime || null
+                    } else if (latestAccepted?.type === 'proposal') {
+                      agreedDate = latestAccepted.proposal?.proposedDateTime || null
+                    }
+                  } catch {
+                    agreedDate = null
+                  }
+                }
+
+                const referenceDate = agreedDate || new Date(Date.now() + (1000 * 60 * 60 * 24 * 365)).toISOString()
+
+                return {
+                  id: `${sessionDetail._id}-${index + 1}`,
+                  mockLabel: `${sessionDetail.titulo} · MOCK #${index + 1}`,
+                  cutoffDate: sessionDetail.fechaProgramada,
+                  agreedDate,
+                  referenceDate,
+                  partnerName: partner.name || 'Sin pareja aun',
+                  partnerId: partner.id || null,
+                  detailsPath,
+                }
               }))
+
+              return items
             } catch {
               return [] as MockHistoryItem[]
             }
@@ -104,7 +150,7 @@ export function MyMocks() {
           return
         }
 
-        setHistory(groupedItems.flat().sort(sortByMostRecentCutoff))
+        setHistory(groupedItems.flat().sort(sortByMostRecentReference))
       } catch (nextError) {
         if (!mounted) {
           return
@@ -188,8 +234,8 @@ export function MyMocks() {
             <table className="retro-table">
               <thead>
                 <tr>
-                  <th>MOCK</th>
-                  <th>CIERRE</th>
+                  <th>SESIÓN / MOCK</th>
+                  <th>FECHA MOCK</th>
                   <th>ESTADO</th>
                   <th>PAREJA</th>
                   <th></th>
@@ -205,10 +251,71 @@ export function MyMocks() {
                 ) : (
                   filteredHistory.map((item) => (
                     <tr key={item.id}>
-                      <td style={{ fontWeight: 700 }}>{item.mockLabel}</td>
-                      <td>{formatDate(item.cutoffDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                      <td>{timingChip(new Date(item.cutoffDate).getTime() > Date.now())}</td>
-                      <td>{item.partnerName}</td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => navigate(item.detailsPath)}
+                          style={{
+                            border: '2px solid #1A0F08',
+                            background: '#FFF8D6',
+                            color: '#1A0F08',
+                            fontFamily: "'Space Mono', monospace",
+                            fontWeight: 700,
+                            fontSize: '0.76rem',
+                            padding: '6px 8px',
+                            cursor: 'pointer',
+                            transition: 'transform 160ms ease, box-shadow 160ms ease',
+                            boxShadow: '2px 2px 0 #1A0F08',
+                          }}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.transform = 'translateY(-2px)'
+                            event.currentTarget.style.boxShadow = '4px 4px 0 #1A0F08'
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.transform = 'translateY(0)'
+                            event.currentTarget.style.boxShadow = '2px 2px 0 #1A0F08'
+                          }}
+                        >
+                          {item.mockLabel}
+                        </button>
+                      </td>
+                      <td>
+                        {item.agreedDate
+                          ? formatDate(item.agreedDate, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                          : 'Por acordar'}
+                      </td>
+                      <td>{timingChip(!item.agreedDate || new Date(item.agreedDate).getTime() > Date.now())}</td>
+                      <td>
+                        {item.partnerId ? (
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/chats?userId=${encodeURIComponent(item.partnerId || '')}`)}
+                            style={{
+                              border: '2px solid #1A0F08',
+                              background: '#FBF3E3',
+                              color: '#1A0F08',
+                              fontFamily: "'Space Mono', monospace",
+                              fontSize: '0.76rem',
+                              padding: '6px 8px',
+                              cursor: 'pointer',
+                              transition: 'transform 160ms ease, box-shadow 160ms ease',
+                              boxShadow: '2px 2px 0 #1A0F08',
+                            }}
+                            onMouseEnter={(event) => {
+                              event.currentTarget.style.transform = 'translateY(-2px)'
+                              event.currentTarget.style.boxShadow = '4px 4px 0 #1A0F08'
+                            }}
+                            onMouseLeave={(event) => {
+                              event.currentTarget.style.transform = 'translateY(0)'
+                              event.currentTarget.style.boxShadow = '2px 2px 0 #1A0F08'
+                            }}
+                          >
+                            {item.partnerName}
+                          </button>
+                        ) : (
+                          'Sin pareja aun'
+                        )}
+                      </td>
                       <td>
                         <Button
                           bg="#C9521A"
