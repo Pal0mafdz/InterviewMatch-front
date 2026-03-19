@@ -1,0 +1,660 @@
+/* ─── LiveCode Dark Theme ─── */
+
+.livecode-root {
+  --lc-bg: #081018;
+  --lc-bg-soft: #0f1821;
+  --lc-panel: rgba(14, 23, 31, 0.82);
+  --lc-panel-strong: rgba(16, 24, 34, 0.96);
+  --lc-border: rgba(255, 255, 255, 0.08);
+  --lc-text: #f4efe8;
+  --lc-muted: #98a5b3;
+  --lc-accent: #ff7a59;
+  --lc-accent-cool: #43c6ac;
+  --lc-accent-ink: #7c8cff;
+  --lc-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+
+  font-family: 'Space Grotesk', 'Lato', sans-serif;
+  color: var(--lc-text);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 89, 0.15), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(67, 198, 172, 0.12), transparent 24%),
+    linear-gradient(180deg, #091119 0%, #060b10 100%);
+}
+
+/* ─── Panels ─── */
+
+.lc-panel {
+  position: relative;
+  backdrop-filter: blur(22px);
+  background: var(--lc-panel);
+  border: 1px solid var(--lc-border);
+  border-radius: 28px;
+  box-shadow: var(--lc-shadow);
+}
+
+.lc-eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  color: var(--lc-muted);
+}
+
+/* ─── Landing ─── */
+
+.lc-landing {
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.lc-hero {
+  width: min(560px, 100%);
+  padding: 2.5rem 2.5rem 2rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent),
+    var(--lc-panel-strong);
+}
+
+.lc-hero-top {
+  margin-bottom: 1.5rem;
+}
+
+.lc-hero h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  line-height: 1.15;
+}
+
+.lc-hero-copy {
+  max-width: 44ch;
+  color: var(--lc-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: 0.6rem;
+}
+
+.lc-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.lc-hero-grid label {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.lc-hero-grid span {
+  color: var(--lc-muted);
+  font-size: 0.88rem;
+}
+
+.lc-auto-tag {
+  font-style: normal;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(67, 198, 172, 0.15);
+  color: var(--lc-accent-cool);
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.lc-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.lc-input-group .lc-input {
+  flex: 1;
+}
+
+.lc-btn--icon {
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lc-text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.lc-input,
+.lc-select-shell {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lc-text);
+}
+
+.lc-input {
+  padding: 1rem 1.1rem;
+  outline: none;
+  font: inherit;
+}
+
+.lc-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lc-select-shell {
+  display: flex;
+  align-items: center;
+  padding: 0 0.9rem 0 1rem;
+}
+
+.lc-select-shell select {
+  width: 100%;
+  padding: 0.95rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--lc-text);
+  outline: none;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lc-select-shell select option {
+  background: #0f1821;
+  color: #f4efe8;
+}
+
+.lc-hero-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.lc-hero-actions .lc-btn--primary {
+  width: 100%;
+}
+
+.lc-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: rgba(67, 198, 172, 0.12);
+  border: 1px solid rgba(67, 198, 172, 0.25);
+  color: var(--lc-accent-cool);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.lc-user-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lc-accent-cool);
+}
+
+/* ─── Buttons ─── */
+
+.lc-btn {
+  min-height: 52px;
+  padding: 0 1.3rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lc-btn--primary {
+  background: linear-gradient(135deg, var(--lc-accent), #ffb36a);
+  color: #101418;
+  font-weight: 700;
+}
+
+.lc-btn--ghost {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--lc-text);
+}
+
+/* ─── Room Layout ─── */
+
+.lc-room {
+  padding: 1.5rem;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.lc-room__backdrop {
+  position: absolute;
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.lc-room__backdrop--one {
+  top: 10%;
+  left: -4rem;
+  width: 20rem;
+  height: 20rem;
+  background: rgba(255, 122, 89, 0.18);
+  border-radius: 50%;
+}
+
+.lc-room__backdrop--two {
+  right: -5rem;
+  bottom: 15%;
+  width: 18rem;
+  height: 18rem;
+  background: rgba(67, 198, 172, 0.18);
+  border-radius: 50%;
+}
+
+.lc-room-layout {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.lc-room-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1rem;
+  min-height: calc(100vh - 170px);
+  transition: grid-template-columns 0.2s ease;
+}
+
+.lc-room-body--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ─── Toolbar ─── */
+
+.lc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.lc-toolbar__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.lc-toolbar h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.lc-toolbar__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lc-muted);
+}
+
+.lc-presence-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lc-muted);
+  font-size: 0.88rem;
+}
+
+.lc-select-field {
+  display: flex;
+  align-items: center;
+}
+
+.lc-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lc-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lc-icon-btn:hover,
+.lc-icon-btn.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--lc-text);
+}
+
+/* ─── Settings Dropdown ─── */
+
+.lc-settings-dropdown {
+  position: absolute;
+  right: 1.5rem;
+  top: calc(100% + 0.5rem);
+  width: 260px;
+  padding: 0.75rem;
+  border-radius: 18px;
+  background: var(--lc-panel-strong);
+  border: 1px solid var(--lc-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lc-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--lc-muted);
+}
+
+.lc-settings-toggle-group {
+  display: flex;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lc-settings-toggle-group button {
+  padding: 0.3rem 0.65rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lc-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.lc-settings-toggle-group button + button {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lc-settings-toggle-group button.is-active {
+  background: var(--lc-accent);
+  color: #101418;
+  font-weight: 600;
+}
+
+.lc-settings-chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lc-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.lc-settings-chip.is-active {
+  background: rgba(67, 198, 172, 0.2);
+  border-color: rgba(67, 198, 172, 0.35);
+  color: var(--lc-accent-cool);
+}
+
+.lc-select-shell--sm {
+  border-radius: 10px;
+  padding: 0 0.5rem 0 0.6rem;
+}
+
+.lc-select-shell--sm select {
+  padding: 0.3rem 0;
+  font-size: 0.78rem;
+}
+
+.lc-hint {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: 0.3rem;
+}
+
+.lc-select-field span {
+  color: var(--lc-muted);
+  font-size: 0.88rem;
+}
+
+/* ─── Editor Panel ─── */
+
+.lc-editor-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.lc-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0.6rem 1.2rem 0;
+}
+
+.lc-editor-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.lc-editor-frame {
+  min-height: 640px;
+  padding: 0 1rem 1rem;
+}
+
+.lc-remote-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+}
+
+.lc-remote-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--lc-muted);
+  font-size: 0.88rem;
+}
+
+.lc-remote-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ─── Participant List ─── */
+
+.lc-sidebar {
+  padding-bottom: 1.25rem;
+}
+
+.lc-sidebar-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.2rem 0;
+}
+
+.lc-sidebar-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.lc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--lc-muted);
+}
+
+.lc-participant-list {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1rem 0;
+}
+
+.lc-participant-card {
+  padding: 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lc-participant-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lc-participant-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lc-participant-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  color: #101418;
+  font-weight: 700;
+}
+
+.lc-participant-card p,
+.lc-participant-card strong {
+  margin: 0;
+}
+
+.lc-participant-card p {
+  color: var(--lc-muted);
+}
+
+.lc-participant-card__meta {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.lc-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.lc-status-dot.is-online {
+  background: var(--lc-accent-cool);
+  box-shadow: 0 0 0 4px rgba(67, 198, 172, 0.14);
+}
+
+.lc-status-dot.is-offline {
+  background: #576574;
+}
+
+/* ─── Remote Cursors & Selections ─── */
+
+.lc-remote-selection {
+  background: rgba(124, 140, 255, 0.16);
+  border-radius: 4px;
+}
+
+.lc-remote-selection__inline {
+  border-bottom: 1px solid rgba(255, 122, 89, 0.4);
+}
+
+.lc-remote-cursor-widget {
+  position: relative;
+  pointer-events: none;
+}
+
+.lc-remote-cursor-widget__bar {
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 2px;
+  height: 22px;
+  background: var(--remote-color);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--remote-color) 28%, transparent);
+}
+
+.lc-remote-cursor-widget__label {
+  position: absolute;
+  left: 0;
+  top: -20px;
+  transform: translateX(-1px);
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: var(--remote-color);
+  color: #081018;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 980px) {
+  .lc-room-body {
+    grid-template-columns: 1fr;
+  }
+
+  .lc-toolbar,
+  .lc-editor-header,
+  .lc-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lc-remote-legend {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .lc-hero {
+    padding: 1.5rem;
+  }
+
+  .lc-room {
+    padding: 1rem;
+  }
+
+  .lc-editor-frame {
+    min-height: 480px;
+  }
+}

@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Local nested repositories
-Features/
+/Features/

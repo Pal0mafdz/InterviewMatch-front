@@ -19,13 +19,15 @@ function platformLabel(platform: keyof PublicProfiles) {
   }[platform]
 }
 
-function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, onOpenChat }: {
+function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, livecodeOwn, livecodePartner, onOpenChat }: {
   slot: number
   partner: any
   enlaceReunion?: string
   totalMocks: number
   feedbackAsInterviewer?: { path: string } | null
   feedbackAsInterviewee?: { path: string } | null
+  livecodeOwn?: { roomId: string; path: string } | null
+  livecodePartner?: { roomId: string; path: string } | null
   onOpenChat?: (partnerId: string) => void
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -87,6 +89,28 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                   <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
                       VER TU FEEDBACK
+                    </Button>
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {livecodeOwn || livecodePartner ? (
+            <div style={{ marginTop: 18 }}>
+              <span className="retro-label">💻 LIVECODE</span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {livecodeOwn ? (
+                  <a href={livecodeOwn.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
+                      TU CÓDIGO
+                    </Button>
+                  </a>
+                ) : null}
+                {livecodePartner ? (
+                  <a href={livecodePartner.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                      CÓDIGO DE {partner?.nombre?.toUpperCase() || 'PAREJA'}
                     </Button>
                   </a>
                 ) : null}
@@ -231,8 +255,8 @@ export function MyMatch() {
         </p>
       )}
       {!matchData.matches[0] && !matchData.partner ? null : matchData.totalMocks === 1
-        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
-        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
+        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} livecodeOwn={matchData.matches[0]?.livecodeOwn} livecodePartner={matchData.matches[0]?.livecodePartner} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
+        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} livecodeOwn={m.livecodeOwn} livecodePartner={m.livecodePartner} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
       }
     </div>
   )

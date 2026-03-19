@@ -16,6 +16,11 @@ export interface MatchFeedbackLink {
   canEdit: boolean
 }
 
+export interface MatchLivecodeLink {
+  roomId: string
+  path: string
+}
+
 export interface MyMatchResponse {
   totalMocks: number
   matchId?: string
@@ -27,6 +32,8 @@ export interface MyMatchResponse {
     partner: MatchPartner
     feedbackAsInterviewer?: MatchFeedbackLink | null
     feedbackAsInterviewee?: MatchFeedbackLink | null
+    livecodeOwn?: MatchLivecodeLink | null
+    livecodePartner?: MatchLivecodeLink | null
   }>
 }
 
