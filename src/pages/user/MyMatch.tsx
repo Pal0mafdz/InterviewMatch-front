@@ -74,21 +74,23 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
             </div>
           )}
 
-          {feedbackAsInterviewer || feedbackAsInterviewee ? (
+          {(feedbackAsInterviewer || livecodePartner) ? (
             <div style={{ marginTop: 18 }}>
-              <span className="retro-label">📝 FEEDBACK</span>
+              <span className="retro-label">COMO ENTREVISTADOR</span>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                {feedbackAsInterviewer ? (
-                  <a href={feedbackAsInterviewer.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
-                      DAR FEEDBACK
+                {livecodePartner ? (
+                  <a href={livecodePartner.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                      title={`Abre el editor de código de ${partner?.nombre || 'tu pareja'} en modo lectura`}>
+                      VER CÓDIGO DE {partner?.nombre?.toUpperCase() || 'PAREJA'}
                     </Button>
                   </a>
                 ) : null}
-                {feedbackAsInterviewee ? (
-                  <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
-                      VER TU FEEDBACK
+                {feedbackAsInterviewer ? (
+                  <a href={feedbackAsInterviewer.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Rellena el formulario de feedback para tu pareja">
+                      DAR FEEDBACK
                     </Button>
                   </a>
                 ) : null}
@@ -96,21 +98,23 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
             </div>
           ) : null}
 
-          {livecodeOwn || livecodePartner ? (
+          {(livecodeOwn || feedbackAsInterviewee) ? (
             <div style={{ marginTop: 18 }}>
-              <span className="retro-label">💻 LIVECODE</span>
+              <span className="retro-label">COMO ENTREVISTADO</span>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {livecodeOwn ? (
                   <a href={livecodeOwn.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
-                      🎯 TU CÓDIGO
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Abre tu editor de código donde resolverás el problema">
+                      TU CÓDIGO
                     </Button>
                   </a>
                 ) : null}
-                {livecodePartner ? (
-                  <a href={livecodePartner.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
-                      👁️ ENTREVISTAR A {partner?.nombre?.toUpperCase() || 'PAREJA'}
+                {feedbackAsInterviewee ? (
+                  <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Disponible cuando tu entrevistador complete el feedback">
+                      VER TU FEEDBACK
                     </Button>
                   </a>
                 ) : null}
