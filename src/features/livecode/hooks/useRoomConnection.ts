@@ -15,6 +15,7 @@ import { starterCode } from '../languages'
 interface UseRoomConnectionOptions {
   roomId: string
   displayName: string
+  role?: string
   userId?: string | null
   authToken?: string | null
 }
@@ -41,7 +42,7 @@ function createFallbackRoom(roomId: string, overrides: Partial<RoomState> = {}):
   }
 }
 
-export function useRoomConnection({ roomId, displayName, userId, authToken }: UseRoomConnectionOptions) {
+export function useRoomConnection({ roomId, displayName, role, userId, authToken }: UseRoomConnectionOptions) {
   const [state, setState] = useState<RoomState | null>(null)
   const [socket, setSocket] = useState<Socket | null>(null)
   const clientIdRef = useRef(getClientId())
@@ -90,6 +91,7 @@ export function useRoomConnection({ roomId, displayName, userId, authToken }: Us
         displayName,
         clientId: clientIdRef.current,
         userId: userId || null,
+        role: role || undefined,
       })
     })
 
@@ -155,7 +157,7 @@ export function useRoomConnection({ roomId, displayName, userId, authToken }: Us
       nextSocket.disconnect()
       setSocket(null)
     }
-  }, [displayName, roomId, userId, authToken])
+  }, [displayName, roomId, role, userId, authToken])
 
   const api = useMemo(
     () => ({

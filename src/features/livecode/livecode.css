@@ -350,6 +350,43 @@
   color: var(--lc-text);
 }
 
+/* ─── Share Copy Toast ─── */
+
+.lc-icon-btn--copied {
+  position: relative;
+  background: rgba(67, 198, 172, 0.2);
+  color: #43c6ac;
+  border-color: rgba(67, 198, 172, 0.3);
+  animation: lc-pop 0.3s ease;
+}
+
+.lc-copied-toast {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(16, 24, 34, 0.95);
+  color: #43c6ac;
+  border: 1px solid rgba(67, 198, 172, 0.25);
+  pointer-events: none;
+  animation: lc-toast-in 0.25s ease;
+}
+
+@keyframes lc-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lc-toast-in {
+  0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 /* ─── Settings Dropdown ─── */
 
 .lc-settings-dropdown {

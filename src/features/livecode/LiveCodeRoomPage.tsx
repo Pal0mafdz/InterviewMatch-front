@@ -7,7 +7,7 @@ import { RoomToolbar } from './components/RoomToolbar'
 import { ParticipantList } from './components/ParticipantList'
 import { starterCode } from './languages'
 import { pickRandomName } from './funnyNames'
-import type { EditorSettings } from './types'
+import type { EditorSettings, ParticipantRole } from './types'
 
 const DEFAULT_SETTINGS: EditorSettings = {
   tabSize: 2,
@@ -26,9 +26,15 @@ export function LiveCodeRoomPage() {
   const fallbackName = useMemo(() => pickRandomName(), [])
   const displayName = user?.nombre ?? fallbackName
 
+  const [role] = useState<ParticipantRole>(() => {
+    const saved = localStorage.getItem('livecode-role')
+    return (saved === 'interviewer' || saved === 'candidate' || saved === 'observer') ? saved : 'candidate'
+  })
+
   const room = useRoomConnection({
     roomId,
     displayName,
+    role,
     userId: user?._id ?? null,
     authToken: token,
   })

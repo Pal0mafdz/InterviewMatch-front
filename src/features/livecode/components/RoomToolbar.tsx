@@ -1,4 +1,4 @@
-import { ChevronDown, Users, PanelRightClose, PanelRightOpen, Settings, Share2 } from 'lucide-react'
+import { ChevronDown, Users, PanelRightClose, PanelRightOpen, Settings, Share2, Check } from 'lucide-react'
 import { useState } from 'react'
 import type { SupportedLanguage } from '../types'
 import { languageOptions } from '../languages'
@@ -78,11 +78,12 @@ export function RoomToolbar({
         </button>
 
         <button
-          className={`lc-icon-btn${copied ? ' is-active' : ''}`}
+          className={`lc-icon-btn${copied ? ' lc-icon-btn--copied' : ''}`}
           onClick={handleShare}
           title={copied ? '¡Copiado!' : 'Copiar link de sala'}
         >
-          <Share2 size={16} />
+          {copied ? <Check size={16} /> : <Share2 size={16} />}
+          {copied && <span className="lc-copied-toast">¡Copiado!</span>}
         </button>
 
         <button
