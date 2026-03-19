@@ -4,6 +4,7 @@ import { AdminRoute } from '../components/AdminRoute'
 import { AppLayout } from '../components/AppLayout'
 import { Login } from '../pages/auth/Login'
 import { Register } from '../pages/auth/Register'
+import { VerifyEmail } from '../pages/auth/VerifyEmail'
 import { Sessions } from '../pages/user/Sessions'
 import { SessionDetail } from '../pages/user/SessionDetail'
 import { Profile } from '../pages/user/Profile'
@@ -23,6 +24,7 @@ export function AppRouter() {
         {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/feedback" element={<FeedbackStudioPage />} />
         <Route path="/feedback/:id" element={<FeedbackStudioPage />} />
         <Route path="/feedback/view/:id" element={<FeedbackStudioPage />} />
