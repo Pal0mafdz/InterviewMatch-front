@@ -31,3 +31,11 @@ export function verifyEmail(email: string, code: string): Promise<AuthResponse> 
     body: JSON.stringify({ email, code }),
   })
 }
+
+export function resendVerification(email: string): Promise<{ mensaje: string }> {
+  return apiFetch<{ mensaje: string }>('/auth/resend-verification', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify({ email }),
+  })
+}

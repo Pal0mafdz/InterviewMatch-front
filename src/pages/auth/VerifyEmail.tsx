@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import { Button, Card } from "pixel-retroui";
 import { AuthBrand } from "../../components/AuthBrand";
 import { useAuth } from "../../context/useAuth";
-import { verifyEmail } from "../../api/auth";
+import { verifyEmail, resendVerification } from "../../api/auth";
 import { toast } from "react-hot-toast";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
@@ -11,6 +11,7 @@ export function VerifyEmail() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,6 +32,14 @@ export function VerifyEmail() {
     }
   }, [user, email, navigate]);
 
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -46,6 +55,18 @@ export function VerifyEmail() {
       setError(err instanceof Error ? err.message : "Código incorrecto");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (countdown > 0) return;
+    
+    try {
+      const res = await resendVerification(email);
+      toast.success(res.mensaje || "Nuevo código enviado");
+      setCountdown(60);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al reenviar código");
     }
   }
 
@@ -119,9 +140,10 @@ export function VerifyEmail() {
                     value={code[i] || ""}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, "");
-                      const newCode = code.split("");
-                      newCode[i] = val;
-                      setCode(newCode.join(""));
+                      const newCodeArray = code.split("");
+                      newCodeArray[i] = val;
+                      const newCode = newCodeArray.join("");
+                      setCode(newCode);
                       // Auto-focus al siguiente
                       if (val && i < 3) {
                         document.getElementById(`code-${i + 1}`)?.focus();
@@ -174,23 +196,37 @@ export function VerifyEmail() {
                 {loading ? "VALIDANDO..." : "VERIFICAR"}
               </Button>
 
-              <p
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: "0.72rem",
-                  color: "#7A4F2D",
-                  textAlign: "center",
-                  marginTop: 16,
-                }}
-              >
-                ¿No recibiste el código?{" "}
-                <Link
-                  to="/register"
-                  style={{ color: "#C9521A", fontWeight: 700 }}
+              <div style={{ marginTop: 20, textAlign: "center" }}>
+                <p
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "0.72rem",
+                    color: "#7A4F2D",
+                    marginBottom: 8,
+                  }}
                 >
-                  Reenviar código
-                </Link>
-              </p>
+                  ¿No recibiste el código?
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={countdown > 0}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: countdown > 0 ? "#A0A0A0" : "#C9521A",
+                    fontWeight: 700,
+                    cursor: countdown > 0 ? "not-allowed" : "pointer",
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: "0.75rem",
+                    textDecoration: countdown > 0 ? "none" : "underline",
+                  }}
+                >
+                  {countdown > 0
+                    ? `Reenviar en ${countdown}s`
+                    : "Reenviar código de verificación"}
+                </button>
+              </div>
             </form>
           </div>
         </Card>
