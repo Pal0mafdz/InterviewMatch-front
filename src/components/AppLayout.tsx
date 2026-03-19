@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const ADMIN_ITEMS: NavItem[] = [
   { icon: '⚙️', label: 'ADMIN', to: '/admin/sessions' },
+  { icon: '👥', label: 'USERS', to: '/admin/users' },
   { icon: '➕', label: 'NUEVA', to: '/admin/sessions/new' },
 ]
 

@@ -265,6 +265,13 @@ body {
   pointer-events: none;
 }
 
+.nini-mail-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  filter: drop-shadow(1px 1px 0 rgba(26, 15, 8, 0.2));
+}
+
 @media (max-width: 520px) {
   .retro-auth-shell {
     max-width: 100%;

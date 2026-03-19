@@ -36,6 +36,27 @@ export function registerForSession(id: string, mockCount: 1 | 2 | 3): Promise<{ 
   })
 }
 
+export function adminRegisterUsersForSession(
+  id: string,
+  entries: Array<{ email: string; mockCount: 1 | 2 | 3 }>
+): Promise<{
+  mensaje: string
+  results: Array<{
+    email: string
+    nombre: string
+    mockCount: number
+    mensaje: string
+    operation: 'created' | 'updated' | 'unchanged'
+    createdCount?: number
+    cancelledCount?: number
+  }>
+}> {
+  return apiFetch(`/sessions/${id}/admin-register`, {
+    method: 'POST',
+    body: JSON.stringify({ entries }),
+  })
+}
+
 export function cancelRegistration(id: string): Promise<{ mensaje: string }> {
   return apiFetch(`/sessions/${id}/register?all=true`, {
     method: 'DELETE',

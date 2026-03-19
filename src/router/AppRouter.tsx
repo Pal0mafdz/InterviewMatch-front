@@ -14,6 +14,7 @@ import { Arsenal } from '../pages/user/Arsenal'
 import { AdminSessions } from '../pages/admin/AdminSessions'
 import { CreateSession } from '../pages/admin/CreateSession'
 import { AdminSessionDetail } from '../pages/admin/AdminSessionDetail'
+import { AdminUsers } from '../pages/admin/AdminUsers'
 import { FeedbackStudioPage } from '../pages/feedback/FeedbackStudioPage'
 
 export function AppRouter() {
@@ -90,6 +91,13 @@ export function AppRouter() {
           <AdminRoute>
             <AppLayout title="Admin — Nueva Sesión">
               <CreateSession />
+            </AppLayout>
+          </AdminRoute>
+        } />
+        <Route path="/admin/users" element={
+          <AdminRoute>
+            <AppLayout title="Admin — Usuarios">
+              <AdminUsers />
             </AppLayout>
           </AdminRoute>
         } />
