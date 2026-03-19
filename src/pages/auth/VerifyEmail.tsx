@@ -1,117 +1,163 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Button, Card } from 'pixel-retroui'
-import { AuthBrand } from '../../components/AuthBrand'
-import { useAuth } from '../../context/useAuth'
-import { verifyEmail } from '../../api/auth'
-import { toast } from 'react-hot-toast'
-import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Button, Card } from "pixel-retroui";
+import { AuthBrand } from "../../components/AuthBrand";
+import { useAuth } from "../../context/useAuth";
+import { verifyEmail } from "../../api/auth";
+import { toast } from "react-hot-toast";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 export function VerifyEmail() {
-  const [code, setCode] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const { user, login } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  
-  // Obtener el email del estado de navegación
-  const email = location.state?.email || ''
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  useDocumentTitle('Verificar Cuenta')
+  // Obtener el email del estado de navegación
+  const email = location.state?.email || "";
+
+  useDocumentTitle("Verificar Cuenta");
 
   useEffect(() => {
     // Si ya está autenticado, redirigir
     if (user) {
-      navigate('/sessions', { replace: true })
+      navigate("/sessions", { replace: true });
     }
     // Si no hay email en el estado, redirigir a login
-    if (!email && !user) {
-      navigate('/login', { replace: true })
+    else if (!email) {
+      navigate("/login", { replace: true });
     }
-  }, [user, email, navigate])
+  }, [user, email, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (code.length !== 4) {
-      toast.error('El código debe tener 4 dígitos')
-      return
-    }
-    
-    setError(null)
-    setLoading(true)
+    setError(null);
+    setLoading(true);
     try {
-      const res = await verifyEmail(email, code)
+      const res = await verifyEmail(email, code);
       // Una vez verificado, el backend nos devuelve el token y el usuario
-      login(res, res.token)
-      toast.success('¡Cuenta verificada exitosamente!')
-      navigate('/sessions')
+      login(res, res.token);
+      toast.success("¡Cuenta verificada exitosamente!");
+      navigate("/sessions");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Código incorrecto')
+      setError(err instanceof Error ? err.message : "Código incorrecto");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#F0E4CC',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '32px 16px',
-    }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#F0E4CC",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px 16px",
+      }}
+    >
       <div className="retro-auth-shell">
         <AuthBrand />
 
-        <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', width: '100%' }}>
+        <Card
+          bg="#FBF3E3"
+          textColor="#1A0F08"
+          borderColor="#1A0F08"
+          shadowColor="#1A0F08"
+          style={{ padding: 0, overflow: "hidden", width: "100%" }}
+        >
           <div className="retro-section-header">
-            <h2>VERIFICAR CUENTA</h2>
+            <h2 style={{ textAlign: "center", width: "100%" }}>
+              VERIFICAR CUENTA
+            </h2>
           </div>
-          <div style={{ padding: '20px 20px 24px' }}>
-            <p style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: '0.85rem',
-              color: '#7A4F2D',
-              textAlign: 'center',
-              marginBottom: 20,
-              lineHeight: 1.5
-            }}>
-              Hemos enviado un código de 4 dígitos a:<br/>
-              <strong style={{ color: '#C9521A' }}>{email}</strong>
+          <div style={{ padding: "20px 20px 24px" }}>
+            <p
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: "0.85rem",
+                color: "#7A4F2D",
+                textAlign: "center",
+                marginBottom: 20,
+                lineHeight: 1.5,
+              }}
+            >
+              Hemos enviado un código de 4 dígitos a:
+              <br />
+              <strong style={{ color: "#C9521A" }}>{email}</strong>
             </p>
 
             <form onSubmit={handleSubmit}>
               {error && (
-                <div className="retro-alert retro-alert-error" style={{ marginBottom: 16 }}>
+                <div
+                  className="retro-alert retro-alert-error"
+                  style={{ marginBottom: 16 }}
+                >
                   ⚠ {error}
                 </div>
               )}
 
-              <div className="retro-form-field">
-                <label className="retro-label" htmlFor="code" style={{ textAlign: 'center', display: 'block', width: '100%' }}>CÓDIGO DE VERIFICACIÓN</label>
-                <div className="retro-auth-input-wrap">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                  marginBottom: 16,
+                }}
+              >
+                {[0, 1, 2, 3].map((i) => (
                   <input
-                    id="code"
-                    className="retro-auth-input"
+                    key={i}
+                    id={`code-${i}`}
                     type="text"
                     inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={4}
-                    value={code}
-                    onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0000"
-                    style={{ textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem' }}
-                    required
+                    maxLength={1}
+                    value={code[i] || ""}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      const newCode = code.split("");
+                      newCode[i] = val;
+                      setCode(newCode.join(""));
+                      // Auto-focus al siguiente
+                      if (val && i < 3) {
+                        document.getElementById(`code-${i + 1}`)?.focus();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Backspace regresa al anterior
+                      if (e.key === "Backspace" && !code[i] && i > 0) {
+                        document.getElementById(`code-${i - 1}`)?.focus();
+                      }
+                    }}
+                    style={{
+                      width: "56px",
+                      height: "64px",
+                      textAlign: "center",
+                      fontSize: "1.8rem",
+                      fontFamily: "'Press Start 2P', monospace",
+                      border: "2px solid #1A0F08",
+                      backgroundColor: "#FBF3E3",
+                      color: "#1A0F08",
+                      outline: "none",
+                    }}
                   />
-                  <span className="retro-auth-input-icon" aria-hidden="true">🔑</span>
-                </div>
+                ))}
               </div>
 
               {loading && (
-                <div style={{ marginBottom: 16, fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: '#C9521A', textAlign: 'center' }}>
+                <div
+                  style={{
+                    marginBottom: 16,
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: "0.55rem",
+                    color: "#C9521A",
+                    textAlign: "center",
+                  }}
+                >
                   VERIFICANDO...
                 </div>
               )}
@@ -123,21 +169,26 @@ export function VerifyEmail() {
                 shadow="#1A0F08"
                 borderColor="#1A0F08"
                 disabled={loading || code.length !== 4}
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               >
-                {loading ? 'VALIDANDO...' : 'VERIFICAR'}
+                {loading ? "VALIDANDO..." : "VERIFICAR"}
               </Button>
 
-              <p style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: '0.72rem',
-                color: '#7A4F2D',
-                textAlign: 'center',
-                marginTop: 16,
-              }}>
-                ¿No recibiste el código?{' '}
-                <Link to="/register" style={{ color: '#C9521A', fontWeight: 700 }}>
-                  Intenta registrarte de nuevo
+              <p
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: "0.72rem",
+                  color: "#7A4F2D",
+                  textAlign: "center",
+                  marginTop: 16,
+                }}
+              >
+                ¿No recibiste el código?{" "}
+                <Link
+                  to="/register"
+                  style={{ color: "#C9521A", fontWeight: 700 }}
+                >
+                  Reenviar código
                 </Link>
               </p>
             </form>
@@ -145,5 +196,5 @@ export function VerifyEmail() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
