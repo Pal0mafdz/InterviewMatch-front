@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import { useRoomConnection } from './hooks/useRoomConnection'
 import { CollaborativeEditor } from './components/CollaborativeEditor'
@@ -20,6 +20,7 @@ const DEFAULT_SETTINGS: EditorSettings = {
 
 export function LiveCodeRoomPage() {
   const params = useParams()
+  const [searchParams] = useSearchParams()
   const { user, token } = useAuth()
 
   const roomId = params.roomId ?? 'room-0000'
@@ -27,6 +28,8 @@ export function LiveCodeRoomPage() {
   const displayName = user?.nombre ?? fallbackName
 
   const [role] = useState<ParticipantRole>(() => {
+    const fromUrl = searchParams.get('role')
+    if (fromUrl === 'interviewer' || fromUrl === 'candidate' || fromUrl === 'observer') return fromUrl
     const saved = localStorage.getItem('livecode-role')
     return (saved === 'interviewer' || saved === 'candidate' || saved === 'observer') ? saved : 'candidate'
   })

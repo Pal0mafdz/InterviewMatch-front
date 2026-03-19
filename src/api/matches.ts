@@ -19,6 +19,7 @@ export interface MatchFeedbackLink {
 export interface MatchLivecodeLink {
   roomId: string
   path: string
+  role?: 'candidate' | 'interviewer'
 }
 
 export interface MyMatchResponse {

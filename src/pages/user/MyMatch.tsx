@@ -103,14 +103,14 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                 {livecodeOwn ? (
                   <a href={livecodeOwn.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
-                      TU CÓDIGO
+                      TU CÓDIGO (Candidato)
                     </Button>
                   </a>
                 ) : null}
                 {livecodePartner ? (
                   <a href={livecodePartner.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
-                      CÓDIGO DE {partner?.nombre?.toUpperCase() || 'PAREJA'}
+                      CÓDIGO DE {partner?.nombre?.toUpperCase() || 'PAREJA'} (Entrevistador)
                     </Button>
                   </a>
                 ) : null}
