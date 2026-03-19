@@ -1,4 +1,10 @@
-import type { ParticipantPresence } from '../types'
+import type { ParticipantPresence, ParticipantRole } from '../types'
+
+const ROLE_LABELS: Record<ParticipantRole, { label: string; emoji: string }> = {
+  candidate: { label: 'Candidato', emoji: '🎯' },
+  interviewer: { label: 'Entrevistador', emoji: '👁️' },
+  observer: { label: 'Observador', emoji: '👀' },
+}
 
 interface ParticipantListProps {
   participants: ParticipantPresence[]
@@ -30,7 +36,7 @@ export function ParticipantList({ participants }: ParticipantListProps) {
                   <strong>{p.displayName}</strong>
                   <span className={`lc-status-dot ${p.connected ? 'is-online' : 'is-offline'}`} />
                 </div>
-                <p>{p.role}</p>
+                <p>{ROLE_LABELS[p.role]?.emoji} {ROLE_LABELS[p.role]?.label ?? p.role}</p>
               </div>
             </div>
             {p.cursorPosition ? (
