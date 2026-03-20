@@ -164,26 +164,26 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
               </div>
               
               <div style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                  <div className="retro-avatar">{partner.nombre?.charAt(0).toUpperCase()}</div>
-                  <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', marginBottom: 0 }}>
-                    {partner.nombre}
-                  </h2>
-                </div>
-
-                {partner.bio && (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">💬 BIO</span>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.8rem', color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, fontStyle: 'italic' }}>
-                      {partner.bio}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <div className="retro-avatar retro-avatar-md">{partner.nombre?.charAt(0).toUpperCase() || '?'}</div>
+                  <div>
+                    <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.63rem', lineHeight: 1.6 }}>
+                      {partner.nombre || 'Sin nombre'}
                     </div>
                   </div>
-                )}
+                </div>
 
-                {publicLinks.length > 0 ? (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">BIO</span>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', lineHeight: 1.6, color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, whiteSpace: 'pre-line' }}>
+                    {partner.bio || 'Sin bio cargada.'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">PERFILES PUBLICOS</span>
+                  {publicLinks.length > 0 ? (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                       {publicLinks.map(([platform, value]) => (
                         <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                           <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
@@ -192,16 +192,22 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                         </a>
                       ))}
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.74rem', color: '#7A4F2D', marginTop: 8 }}>
+                      Sin perfiles públicos cargados.
+                    </div>
+                  )}
+                </div>
 
-                {partner.cvPath && (
-                  <div style={{ marginTop: 20 }}>
-                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
-                      <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
-                        ⬇ DESCARGAR CV
-                      </Button>
-                    </a>
+                {partner.cvPath ? (
+                  <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
+                      ⬇ DESCARGAR CV
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="retro-alert retro-alert-info" style={{ marginBottom: 0 }}>
+                    Este usuario no tiene CV cargado.
                   </div>
                 )}
               </div>
