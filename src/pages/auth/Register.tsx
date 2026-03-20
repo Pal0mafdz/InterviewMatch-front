@@ -30,10 +30,9 @@ export function Register() {
     setError(null)
     setLoading(true)
     try {
-      const res = await apiRegister(nombre, email, password)
-      login(res, res.token)
-      toast.success('¡Cuenta creada exitosamente!')
-      navigate('/sessions')
+      await apiRegister(nombre, email, password)
+      toast.success('¡Cuenta creada! Por favor verifica tu correo.')
+      navigate('/verify-email', { state: { email } })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse')
     } finally {

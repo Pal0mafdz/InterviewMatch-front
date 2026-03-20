@@ -23,3 +23,19 @@ export function register(nombre: string, email: string, password: string): Promi
     body: JSON.stringify({ nombre, email, password }),
   })
 }
+
+export function verifyEmail(email: string, code: string): Promise<AuthResponse> {
+  return apiFetch<AuthResponse>('/auth/verify-email', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify({ email, code }),
+  })
+}
+
+export function resendVerification(email: string): Promise<{ mensaje: string }> {
+  return apiFetch<{ mensaje: string }>('/auth/resend-verification', {
+    method: 'POST',
+    auth: false,
+    body: JSON.stringify({ email }),
+  })
+}
