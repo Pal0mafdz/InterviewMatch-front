@@ -4,7 +4,6 @@ import type {
   CursorPosition,
   CursorEventPayload,
   EditorDeltaPayload,
-  EditorSyncPayload,
   EditorUpdatedPayload,
   LanguageChangedPayload,
   RoomState,
@@ -59,7 +58,6 @@ export function useRoomConnection({ roomId, displayName, role, userId, authToken
   const selectionResetTimersRef = useRef(new Map<string, number>())
   const versionRef = useRef(0)
   const deltaListenersRef = useRef<Set<(payload: EditorDeltaPayload) => void>>(new Set())
-  const syncListenersRef = useRef<Set<(payload: EditorSyncPayload) => void>>(new Set())
 
   const scheduleSelectionReset = (participantId: string) => {
     const timers = selectionResetTimersRef.current
@@ -118,23 +116,11 @@ export function useRoomConnection({ roomId, displayName, role, userId, authToken
       versionRef.current = payload.version
       // Notify editor to apply remote delta without undo stack pollution
       deltaListenersRef.current.forEach((fn) => fn(payload))
-      // Also update state code for consistency
+      // Use server's authoritative code for state
       setState((cur) => {
         if (!cur) return cur
-        let code = cur.code
-        const sorted = [...payload.changes].sort((a, b) => b.rangeOffset - a.rangeOffset)
-        for (const c of sorted) {
-          const end = Math.min(c.rangeOffset + c.rangeLength, code.length)
-          code = code.slice(0, c.rangeOffset) + c.text + code.slice(end)
-        }
-        return { ...cur, code, version: payload.version }
+        return { ...cur, code: payload.code, version: payload.version }
       })
-    })
-
-    nextSocket.on('editor:sync', (payload: EditorSyncPayload) => {
-      versionRef.current = payload.version
-      syncListenersRef.current.forEach((fn) => fn(payload))
-      setState((cur) => cur ? { ...cur, code: payload.code, version: payload.version } : createFallbackRoom(roomId, { code: payload.code, version: payload.version }))
     })
 
     nextSocket.on('language:changed', ({ language, clientId }: LanguageChangedPayload) => {
@@ -207,17 +193,11 @@ export function useRoomConnection({ roomId, displayName, role, userId, authToken
         }, 35)
       },
       applyDelta: (changes: TextChange[]) => {
-        socket?.emit('editor:delta', { roomId, changes, version: versionRef.current })
-        // Optimistically bump version
-        versionRef.current += 1
+        socket?.emit('editor:delta', { roomId, changes })
       },
       onRemoteDelta: (fn: (payload: EditorDeltaPayload) => void) => {
         deltaListenersRef.current.add(fn)
         return () => { deltaListenersRef.current.delete(fn) }
-      },
-      onRemoteSync: (fn: (payload: EditorSyncPayload) => void) => {
-        syncListenersRef.current.add(fn)
-        return () => { syncListenersRef.current.delete(fn) }
       },
       setLanguage: (language: SupportedLanguage) => {
         versionRef.current += 1

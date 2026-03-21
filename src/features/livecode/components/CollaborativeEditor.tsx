@@ -5,7 +5,6 @@ import type {
   CursorPosition,
   EditorDeltaPayload,
   EditorSettings,
-  EditorSyncPayload,
   ParticipantPresence,
   SelectionRange,
   SupportedLanguage,
@@ -20,7 +19,6 @@ interface CollaborativeEditorProps {
   onChange: (code: string) => void
   onDelta?: (changes: TextChange[]) => void
   onRemoteDelta?: (fn: (payload: EditorDeltaPayload) => void) => (() => void)
-  onRemoteSync?: (fn: (payload: EditorSyncPayload) => void) => (() => void)
   onCursorChange?: (cursorPosition: CursorPosition) => void
   onSelectionChange?: (selectionRange: SelectionRange) => void
   settings?: EditorSettings
@@ -41,7 +39,6 @@ export function CollaborativeEditor({
   onChange,
   onDelta,
   onRemoteDelta,
-  onRemoteSync,
   onCursorChange,
   onSelectionChange,
   settings,
@@ -72,45 +69,37 @@ export function CollaborativeEditor({
 
       isApplyingExternalCodeRef.current = true
       try {
-        const edits = payload.changes.map((c) => ({
-          range: {
-            startLineNumber: c.range.startLineNumber,
-            startColumn: c.range.startColumn,
-            endLineNumber: c.range.endLineNumber,
-            endColumn: c.range.endColumn,
-          },
-          text: c.text,
-        }))
-        // applyEdits does NOT push to undo stack — this is the key difference
+        // Convert offsets to positions using the local model — safe regardless of document divergence
+        const edits = payload.changes.map((c) => {
+          const startPos = model.getPositionAt(c.rangeOffset)
+          const endPos = model.getPositionAt(c.rangeOffset + c.rangeLength)
+          return {
+            range: {
+              startLineNumber: startPos.lineNumber,
+              startColumn: startPos.column,
+              endLineNumber: endPos.lineNumber,
+              endColumn: endPos.column,
+            },
+            text: c.text,
+          }
+        })
+        // applyEdits does NOT push to undo stack
         model.applyEdits(edits)
+
+        // Verify result matches server's authoritative code
+        if (model.getValue() !== payload.code) {
+          // Desync detected — full replacement (still undo-safe via model.applyEdits)
+          model.applyEdits([{
+            range: model.getFullModelRange(),
+            text: payload.code,
+          }])
+        }
       } finally {
         isApplyingExternalCodeRef.current = false
       }
     })
     return unsubscribe
   }, [onRemoteDelta])
-
-  // Subscribe to full resync events
-  useEffect(() => {
-    if (!onRemoteSync) return
-    const unsubscribe = onRemoteSync((payload) => {
-      const editor = editorRef.current
-      const model = editor?.getModel()
-      if (!editor || !model) return
-      if (model.getValue() === payload.code) return
-
-      const viewState = editor.saveViewState()
-      isApplyingExternalCodeRef.current = true
-      editor.executeEdits('full-sync', [{
-        range: model.getFullModelRange(),
-        text: payload.code,
-        forceMoveMarkers: true,
-      }])
-      if (viewState) editor.restoreViewState(viewState)
-      isApplyingExternalCodeRef.current = false
-    })
-    return unsubscribe
-  }, [onRemoteSync])
 
   const applyPresenceDecorations = () => {
     const editor = editorRef.current
@@ -285,10 +274,10 @@ export function CollaborativeEditor({
 
     const viewState = editor.saveViewState()
     isApplyingExternalCodeRef.current = true
-    editor.executeEdits('external-sync', [{
+    // Use model.applyEdits to avoid polluting undo stack with remote changes
+    model.applyEdits([{
       range: model.getFullModelRange(),
       text: code,
-      forceMoveMarkers: true,
     }])
     if (viewState) editor.restoreViewState(viewState)
     isApplyingExternalCodeRef.current = false
@@ -316,6 +305,8 @@ export function CollaborativeEditor({
           onMount={handleMount}
           onChange={(value) => {
             if (isApplyingExternalCodeRef.current) return
+            // When deltas are active, skip full-code emit (deltas handle server communication)
+            if (onDeltaRef.current) return
             onChange(value ?? '')
           }}
           options={{

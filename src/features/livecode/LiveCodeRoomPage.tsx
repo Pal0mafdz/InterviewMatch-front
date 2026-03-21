@@ -75,7 +75,6 @@ export function LiveCodeRoomPage() {
             onChange={room.setCode}
             onDelta={room.applyDelta}
             onRemoteDelta={room.onRemoteDelta}
-            onRemoteSync={room.onRemoteSync}
             onCursorChange={room.setCursor}
             onSelectionChange={room.setSelection}
             settings={settings}

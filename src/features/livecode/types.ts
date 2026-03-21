@@ -60,13 +60,9 @@ export interface TextChange {
 
 export interface EditorDeltaPayload {
   changes: TextChange[]
-  version: number
-  clientId: string
-}
-
-export interface EditorSyncPayload {
   code: string
   version: number
+  clientId: string
 }
 
 export interface LanguageChangedPayload {
