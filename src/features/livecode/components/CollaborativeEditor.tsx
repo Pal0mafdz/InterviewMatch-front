@@ -3,10 +3,13 @@ import { useEffect, useRef } from 'react'
 import type { editor as MonacoEditor } from 'monaco-editor'
 import type {
   CursorPosition,
+  EditorDeltaPayload,
   EditorSettings,
+  EditorSyncPayload,
   ParticipantPresence,
   SelectionRange,
   SupportedLanguage,
+  TextChange,
 } from '../types'
 
 interface CollaborativeEditorProps {
@@ -15,6 +18,9 @@ interface CollaborativeEditorProps {
   participants: ParticipantPresence[]
   localClientId?: string
   onChange: (code: string) => void
+  onDelta?: (changes: TextChange[]) => void
+  onRemoteDelta?: (fn: (payload: EditorDeltaPayload) => void) => (() => void)
+  onRemoteSync?: (fn: (payload: EditorSyncPayload) => void) => (() => void)
   onCursorChange?: (cursorPosition: CursorPosition) => void
   onSelectionChange?: (selectionRange: SelectionRange) => void
   settings?: EditorSettings
@@ -33,6 +39,9 @@ export function CollaborativeEditor({
   participants,
   localClientId,
   onChange,
+  onDelta,
+  onRemoteDelta,
+  onRemoteSync,
   onCursorChange,
   onSelectionChange,
   settings,
@@ -43,6 +52,7 @@ export function CollaborativeEditor({
   const cursorWidgetsRef = useRef<Map<string, RemoteCursorWidgetEntry>>(new Map())
   const onCursorChangeRef = useRef(onCursorChange)
   const onSelectionChangeRef = useRef(onSelectionChange)
+  const onDeltaRef = useRef(onDelta)
 
   const remoteParticipants = participants.filter(
     (p) => p.connected && p.clientId !== localClientId,
@@ -50,6 +60,57 @@ export function CollaborativeEditor({
 
   useEffect(() => { onCursorChangeRef.current = onCursorChange }, [onCursorChange])
   useEffect(() => { onSelectionChangeRef.current = onSelectionChange }, [onSelectionChange])
+  useEffect(() => { onDeltaRef.current = onDelta }, [onDelta])
+
+  // Subscribe to remote deltas — apply edits without polluting undo stack
+  useEffect(() => {
+    if (!onRemoteDelta) return
+    const unsubscribe = onRemoteDelta((payload) => {
+      const editor = editorRef.current
+      const model = editor?.getModel()
+      if (!editor || !model) return
+
+      isApplyingExternalCodeRef.current = true
+      try {
+        const edits = payload.changes.map((c) => ({
+          range: {
+            startLineNumber: c.range.startLineNumber,
+            startColumn: c.range.startColumn,
+            endLineNumber: c.range.endLineNumber,
+            endColumn: c.range.endColumn,
+          },
+          text: c.text,
+        }))
+        // applyEdits does NOT push to undo stack — this is the key difference
+        model.applyEdits(edits)
+      } finally {
+        isApplyingExternalCodeRef.current = false
+      }
+    })
+    return unsubscribe
+  }, [onRemoteDelta])
+
+  // Subscribe to full resync events
+  useEffect(() => {
+    if (!onRemoteSync) return
+    const unsubscribe = onRemoteSync((payload) => {
+      const editor = editorRef.current
+      const model = editor?.getModel()
+      if (!editor || !model) return
+      if (model.getValue() === payload.code) return
+
+      const viewState = editor.saveViewState()
+      isApplyingExternalCodeRef.current = true
+      editor.executeEdits('full-sync', [{
+        range: model.getFullModelRange(),
+        text: payload.code,
+        forceMoveMarkers: true,
+      }])
+      if (viewState) editor.restoreViewState(viewState)
+      isApplyingExternalCodeRef.current = false
+    })
+    return unsubscribe
+  }, [onRemoteSync])
 
   const applyPresenceDecorations = () => {
     const editor = editorRef.current
@@ -176,6 +237,25 @@ export function CollaborativeEditor({
 
     editor.onDidChangeCursorPosition((e) => onCursorChangeRef.current?.(e.position))
     editor.onDidChangeCursorSelection((e) => onSelectionChangeRef.current?.(e.selection))
+
+    // Capture content changes as deltas for collaborative editing
+    editor.onDidChangeModelContent((e) => {
+      if (isApplyingExternalCodeRef.current) return
+      if (!onDeltaRef.current) return
+
+      const changes: TextChange[] = e.changes.map((c) => ({
+        range: {
+          startLineNumber: c.range.startLineNumber,
+          startColumn: c.range.startColumn,
+          endLineNumber: c.range.endLineNumber,
+          endColumn: c.range.endColumn,
+        },
+        text: c.text,
+        rangeOffset: c.rangeOffset,
+        rangeLength: c.rangeLength,
+      }))
+      onDeltaRef.current(changes)
+    })
   }
 
   useEffect(() => {

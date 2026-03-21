@@ -33,6 +33,7 @@ export interface RoomState {
   title: string
   language: SupportedLanguage
   code: string
+  version: number
   participants: ParticipantPresence[]
 }
 
@@ -46,7 +47,26 @@ export interface RoomJoinPayload {
 
 export interface EditorUpdatedPayload {
   code: string
+  version: number
   clientId: string
+}
+
+export interface TextChange {
+  range: SelectionRange
+  text: string
+  rangeOffset: number
+  rangeLength: number
+}
+
+export interface EditorDeltaPayload {
+  changes: TextChange[]
+  version: number
+  clientId: string
+}
+
+export interface EditorSyncPayload {
+  code: string
+  version: number
 }
 
 export interface LanguageChangedPayload {
