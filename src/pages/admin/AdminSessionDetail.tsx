@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Button, Card } from 'pixel-retroui'
-import { cancelRegistration, getSession, registerForSession, updateSession } from '../../api/sessions'
+import { adminRegisterUsersForSession, cancelRegistration, getSession, registerForSession, updateSession } from '../../api/sessions'
 import type { Session } from '../../api/sessions'
 import { createManualMatch, getSessionMatches, publishShuffle, removeManualMatch } from '../../api/matches'
-import { STATIC_BASE_URL } from '../../api/constants'
 import type { SessionMatch, SessionMatchOverviewResponse } from '../../api/matches'
+import { getUsers, type PublicProfiles, type UserProfile } from '../../api/users'
 import { useAuth } from '../../context/useAuth'
 import { formatDate, localDateTimeInputToIso, toDateTimeLocalInput } from '../../utils/date'
+import { AdminUserProfileModal } from '../../components/AdminUserProfileModal'
 
 type UnmatchedRegistration = NonNullable<SessionMatchOverviewResponse['unmatched']>[number]
 
@@ -37,16 +38,50 @@ function formatRegistrationOption(registration: UnmatchedRegistration) {
   return `${registration.user.nombre} (${registration.user.email}) · slot ${registration.slotNumber}`
 }
 
-function buildCvDownloadName(nombre?: string) {
-  return `${nombre || 'Usuario'} - CV.pdf`
+type AdminEnrollmentDraft = {
+  email: string
+  mockCount: '' | 1 | 2 | 3
+}
+
+function createEmptyAdminEnrollmentDraft(): AdminEnrollmentDraft {
+  return {
+    email: '',
+    mockCount: '',
+  }
+}
+
+function parseAdminEnrollmentDrafts(rows: AdminEnrollmentDraft[]) {
+  const nonEmptyRows = rows.filter((row) => row.email.trim() || row.mockCount !== '')
+
+  if (!nonEmptyRows.length) {
+    throw new Error('Añade al menos una inscripción')
+  }
+
+  return nonEmptyRows.map((row, index) => {
+    const email = row.email.trim()
+    const mockCount = Number(row.mockCount)
+
+    if (!email || row.mockCount === '') {
+      throw new Error(`La fila ${index + 1} debe tener correo y número de mocks`)
+    }
+
+    if (![1, 2, 3].includes(mockCount)) {
+      throw new Error(`La fila ${index + 1} debe indicar 1, 2 o 3 mocks`)
+    }
+
+    return { email, mockCount: mockCount as 1 | 2 | 3 }
+  })
 }
 
 type SessionUserProfile = {
   _id: string
   nombre?: string
   email?: string
+  rol?: 'user' | 'admin'
   cvPath?: string
   bio?: string
+  publicProfiles?: Partial<PublicProfiles>
+  isBlocked?: boolean
 }
 
 const statusChip = (estado: string) => {
@@ -86,12 +121,19 @@ export function AdminSessionDetail() {
   const [enrolledSearch, setEnrolledSearch] = useState('')
   const [matchSearch, setMatchSearch] = useState('')
   const [selectedUserProfile, setSelectedUserProfile] = useState<SessionUserProfile | null>(null)
+  const [usersById, setUsersById] = useState<Record<string, UserProfile>>({})
   const [editTitulo, setEditTitulo] = useState('')
   const [editFecha, setEditFecha] = useState('')
   const [editDescripcion, setEditDescripcion] = useState('')
   const [detailsSaving, setDetailsSaving] = useState(false)
   const [detailsError, setDetailsError] = useState<string | null>(null)
   const [detailsSuccess, setDetailsSuccess] = useState<string | null>(null)
+  const [adminEnrollRows, setAdminEnrollRows] = useState<AdminEnrollmentDraft[]>([
+    createEmptyAdminEnrollmentDraft(),
+  ])
+  const [adminEnrollLoading, setAdminEnrollLoading] = useState(false)
+  const [adminEnrollError, setAdminEnrollError] = useState<string | null>(null)
+  const [adminEnrollSuccess, setAdminEnrollSuccess] = useState<string | null>(null)
 
   async function reloadSessionData(sessionId: string) {
     const [updatedSession, overview] = await Promise.all([
@@ -119,6 +161,42 @@ export function AdminSessionDetail() {
         setLoadingMatches(false)
       })
   }, [id])
+
+  useEffect(() => {
+    getUsers()
+      .then((allUsers) => {
+        const nextMap: Record<string, UserProfile> = {}
+        allUsers.forEach((currentUser) => {
+          nextMap[currentUser._id] = currentUser
+        })
+        setUsersById(nextMap)
+      })
+      .catch(() => {
+        // Keep fallback behavior using partial session/match payloads.
+      })
+  }, [])
+
+  function openUserProfile(userRef: { _id?: string; nombre?: string; email?: string; rol?: 'user' | 'admin'; cvPath?: string; bio?: string; publicProfiles?: Partial<PublicProfiles> }) {
+    if (!userRef._id) {
+      return
+    }
+
+    const completeProfile = usersById[userRef._id]
+    if (completeProfile) {
+      setSelectedUserProfile(completeProfile)
+      return
+    }
+
+    setSelectedUserProfile({
+      _id: userRef._id,
+      nombre: userRef.nombre || 'Desconocido',
+      email: userRef.email || 'Sin correo',
+      rol: userRef.rol || 'user',
+      cvPath: userRef.cvPath,
+      bio: userRef.bio,
+      publicProfiles: userRef.publicProfiles,
+    })
+  }
 
   useEffect(() => {
     if (!session) {
@@ -304,6 +382,48 @@ export function AdminSessionDetail() {
     }
   }
 
+  async function handleAdminEnrollUsers() {
+    if (!id) {
+      return
+    }
+
+    setAdminEnrollLoading(true)
+    setAdminEnrollError(null)
+    setAdminEnrollSuccess(null)
+
+    try {
+      const entries = parseAdminEnrollmentDrafts(adminEnrollRows)
+      const response = await adminRegisterUsersForSession(id, entries)
+      await reloadSessionData(id)
+      setAdminEnrollRows([createEmptyAdminEnrollmentDraft()])
+      setAdminEnrollSuccess(response.results.map((result) => `${result.email}: ${result.mockCount} mock(s)`).join(' · '))
+    } catch (err) {
+      setAdminEnrollError(err instanceof Error ? err.message : 'Error al inscribir usuarios en la sesión')
+    } finally {
+      setAdminEnrollLoading(false)
+    }
+  }
+
+  function updateAdminEnrollRow(index: number, patch: Partial<AdminEnrollmentDraft>) {
+    setAdminEnrollRows((currentRows) => currentRows.map((row, rowIndex) => (
+      rowIndex === index ? { ...row, ...patch } : row
+    )))
+  }
+
+  function addAdminEnrollRow() {
+    setAdminEnrollRows((currentRows) => [...currentRows, createEmptyAdminEnrollmentDraft()])
+  }
+
+  function removeAdminEnrollRow(index: number) {
+    setAdminEnrollRows((currentRows) => {
+      if (currentRows.length === 1) {
+        return [createEmptyAdminEnrollmentDraft()]
+      }
+
+      return currentRows.filter((_, rowIndex) => rowIndex !== index)
+    })
+  }
+
   const personas = session?.inscripciones?.length ?? 0
   const totalMocks = session?.inscripciones?.reduce((sum, i) => sum + i.mockCount, 0) ?? 0
   const filteredFirstRegistrations = unmatchedRegistrations.filter((registration) => matchesRegistrationSearch(registration, firstRegistrationSearch))
@@ -349,71 +469,7 @@ export function AdminSessionDetail() {
 
   return (
     <div>
-      {selectedUserProfile && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: 20,
-        }}>
-          <div style={{ width: '100%', maxWidth: 460 }}>
-            <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden' }}>
-              <div className="retro-section-header" style={{ justifyContent: 'space-between' }}>
-                <h2>PERFIL DEL CANDIDATO</h2>
-                <button
-                  type="button"
-                  onClick={() => setSelectedUserProfile(null)}
-                  style={{ background: 'transparent', border: 'none', color: '#1A0F08', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 700 }}
-                >
-                  X
-                </button>
-              </div>
-              <div style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-                  <div className="retro-avatar retro-avatar-md">
-                    {selectedUserProfile.nombre?.charAt(0).toUpperCase() || '?'}
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.65rem', color: '#1A0F08', lineHeight: 1.7 }}>
-                      {selectedUserProfile.nombre || 'Sin nombre'}
-                    </div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.74rem', color: '#7A4F2D' }}>
-                      {selectedUserProfile.email || 'Sin correo'}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 16 }}>
-                  <span className="retro-label">BIO</span>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', lineHeight: 1.6, color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10 }}>
-                    {selectedUserProfile.bio || 'Sin bio cargada.'}
-                  </div>
-                </div>
-
-                {selectedUserProfile.cvPath ? (
-                  <a
-                    href={`${STATIC_BASE_URL}${selectedUserProfile.cvPath}`}
-                    download={buildCvDownloadName(selectedUserProfile.nombre)}
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
-                      ⬇ DESCARGAR CV
-                    </Button>
-                  </a>
-                ) : (
-                  <div className="retro-alert retro-alert-info" style={{ marginBottom: 0 }}>
-                    Este usuario no tiene CV cargado.
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
+      <AdminUserProfileModal user={selectedUserProfile} onClose={() => setSelectedUserProfile(null)} />
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -597,6 +653,74 @@ export function AdminSessionDetail() {
 
       {session.estado === 'abierta' && (
         <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
+          <div className="retro-section-header"><h2>📝 INSCRIBIR USUARIOS A LA SESIÓN</h2></div>
+          <div style={{ padding: 20 }}>
+            <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D', marginBottom: 16 }}>
+              Añade una fila por usuario y completa los dos campos: <strong>correo</strong> y <strong>mocks</strong>.
+            </p>
+            <div style={{ display: 'grid', gap: 12, marginBottom: 16 }}>
+              {adminEnrollRows.map((row, index) => (
+                <div key={index} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px auto', gap: 10, alignItems: 'end' }}>
+                  <div>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
+                      CORREO {index + 1}
+                    </div>
+                    <input
+                      type="email"
+                      value={row.email}
+                      onChange={(event) => updateAdminEnrollRow(index, { email: event.currentTarget.value })}
+                      placeholder={index === 0 ? 'ana.mocker@gmail.com' : index === 1 ? 'carlos.dev@outlook.com' : 'usuario@correo.com'}
+                      style={{ width: '100%', minHeight: 40, border: '2px solid #1A0F08', background: '#FFFDF7', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginBottom: 6 }}>
+                      MOCKS
+                    </div>
+                    <select
+                      value={row.mockCount}
+                      onChange={(event) => updateAdminEnrollRow(index, { mockCount: event.currentTarget.value === '' ? '' : Number(event.currentTarget.value) as 1 | 2 | 3 })}
+                      style={{ width: '100%', minHeight: 40, border: '2px solid #1A0F08', background: '#FFFDF7', padding: '8px 10px', fontFamily: "'Space Mono', monospace" }}
+                    >
+                      <option value="">Elegir</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </div>
+                  <Button
+                    bg="#FFFDF7" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                    onClick={() => removeAdminEnrollRow(index)}
+                    style={{ minWidth: 88 }}
+                  >
+                    QUITAR
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <Button
+                bg="#FFFDF7" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                onClick={addAdminEnrollRow}
+              >
+                AÑADIR OTRA PERSONA
+              </Button>
+            <Button
+              bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+              onClick={handleAdminEnrollUsers}
+              disabled={adminEnrollLoading}
+            >
+              {adminEnrollLoading ? 'INSCRIBIENDO...' : 'INSCRIBIR USUARIOS'}
+            </Button>
+            </div>
+            {adminEnrollError && <div className="retro-alert retro-alert-error" style={{ marginTop: 14 }}>{adminEnrollError}</div>}
+            {adminEnrollSuccess && <div className="retro-alert retro-alert-success" style={{ marginTop: 14 }}>{adminEnrollSuccess}</div>}
+          </div>
+        </Card>
+      )}
+
+      {session.estado === 'abierta' && (
+        <Card bg="#FBF3E3" textColor="#1A0F08" borderColor="#1A0F08" shadowColor="#1A0F08" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
           <div className="retro-section-header"><h2>🤝 EMPAREJAR ANTES DEL SHUFFLE</h2></div>
           <div style={{ padding: 20 }}>
             <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', color: '#7A4F2D', marginBottom: 16 }}>
@@ -690,104 +814,28 @@ export function AdminSessionDetail() {
               </thead>
               <tbody>
                 {filteredInscripciones.map((insc, idx) => {
-                  const u = typeof insc.usuario === 'string' ? { _id: insc.usuario, nombre: '...', email: '...', cvPath: '', bio: '' } : insc.usuario
+                  const u = typeof insc.usuario === 'string' ? { _id: insc.usuario, nombre: '...', email: '...' } : insc.usuario
                   return (
                     <tr key={`${u._id || idx}`} style={{ borderBottom: '1px solid #1A0F08' }}>
                       <td style={{ padding: '10px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedUserProfile(u)}
-                          style={{
-                            border: 'none',
-                            background: 'transparent',
-                            padding: 0,
-                            margin: 0,
-                            cursor: 'pointer',
-                            fontFamily: "'Press Start 2P', monospace",
-                            fontSize: '0.58rem',
-                            color: '#1A0F08',
-                            textAlign: 'left',
-                            textDecoration: 'none',
-                            transition: 'color 0.12s ease, transform 0.12s ease, text-shadow 0.12s ease',
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = '#C9521A'
-                            event.currentTarget.style.transform = 'translateX(2px)'
-                            event.currentTarget.style.textShadow = '1px 0 0 #1A0F08'
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = '#1A0F08'
-                            event.currentTarget.style.transform = 'translateX(0)'
-                            event.currentTarget.style.textShadow = 'none'
-                          }}
-                          title="Abrir perfil"
-                        >
+                        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.58rem', color: '#1A0F08' }}>
                           {u.nombre || 'Desconocido'}
-                        </button>
+                        </span>
                       </td>
                       <td style={{ padding: '10px', fontSize: '0.8rem', fontFamily: 'monospace' }}>{u.email || '—'}</td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
                         <span className="retro-chip retro-chip-blue">{insc.mockCount}</span>
                       </td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                            minHeight: 56,
-                          }}
+                        <Button
+                          bg="#FBF3E3"
+                          textColor="#1A0F08"
+                          shadow="#1A0F08"
+                          borderColor="#1A0F08"
+                          onClick={() => openUserProfile(u)}
                         >
-                          {u.cvPath ? (
-                            <a href={`${STATIC_BASE_URL}${u.cvPath}`} download={buildCvDownloadName(u.nombre)} style={{ textDecoration: 'none', display: 'inline-flex' }}>
-                              <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ minWidth: 48, padding: '4px 8px', fontSize: '0.58rem' }}>
-                                CV
-                              </Button>
-                            </a>
-                          ) : (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                minWidth: 48,
-                                minHeight: 26,
-                                padding: '4px 8px',
-                                border: '2px solid #C7A46A',
-                                background: '#F5EDD8',
-                                color: '#7A4F2D',
-                                fontSize: '0.62rem',
-                              }}
-                            >
-                              Sin CV
-                            </span>
-                          )}
-                          {u.bio ? (
-                            <div
-                              style={{
-                                maxWidth: 150,
-                                fontSize: '0.6rem',
-                                lineHeight: 1.35,
-                                color: '#7A4F2D',
-                                textAlign: 'center',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                              }}
-                              title={u.bio}
-                            >
-                              Bio: {u.bio}
-                            </div>
-                          ) : (
-                            <div style={{ fontSize: '0.65rem', color: '#B08A59', textAlign: 'center' }}>
-                              Sin bio
-                            </div>
-                          )}
-                        </div>
+                          MOSTRAR PERFIL
+                        </Button>
                       </td>
                     </tr>
                   )
@@ -817,6 +865,7 @@ export function AdminSessionDetail() {
                   <th>SLOT</th>
                   <th>USUARIO 1</th>
                   <th>USUARIO 2</th>
+                  <th>PERFILES</th>
                   {session.estado === 'abierta' && <th>ACCIÓN</th>}
                 </tr>
               </thead>
@@ -835,6 +884,30 @@ export function AdminSessionDetail() {
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D', marginLeft: 6 }}>
                         ({m.user2.email})
                       </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <Button
+                          bg="#FBF3E3"
+                          textColor="#1A0F08"
+                          shadow="#1A0F08"
+                          borderColor="#1A0F08"
+                          onClick={() => openUserProfile(m.user1)}
+                          style={{ padding: '4px 8px', fontSize: '0.62rem' }}
+                        >
+                          VER {m.user1.nombre?.toUpperCase() || 'U1'}
+                        </Button>
+                        <Button
+                          bg="#FBF3E3"
+                          textColor="#1A0F08"
+                          shadow="#1A0F08"
+                          borderColor="#1A0F08"
+                          onClick={() => openUserProfile(m.user2)}
+                          style={{ padding: '4px 8px', fontSize: '0.62rem' }}
+                        >
+                          VER {m.user2.nombre?.toUpperCase() || 'U2'}
+                        </Button>
+                      </div>
                     </td>
                     {session.estado === 'abierta' && (
                       <td>

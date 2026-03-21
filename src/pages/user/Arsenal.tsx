@@ -12,8 +12,15 @@ type LinkCard = {
 
 const quickActions: LinkCard[] = [
   {
+    title: 'LiveCode',
+    tag: 'TOOL',
+    body: 'Editor de código colaborativo en tiempo real. Crea una sala o entra a una existente para hacer pair programming.',
+    actionLabel: 'ABRIR LIVECODE',
+    to: '/livecode',
+  },
+  {
     title: 'Feedback Studio',
-    tag: 'LOCAL',
+    tag: 'TOOL',
     body: 'Entrada directa al editor de feedback. Los links privados que recibas también aterrizan aquí.',
     actionLabel: 'ABRIR STUDIO',
     to: '/feedback',

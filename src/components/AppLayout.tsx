@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const ADMIN_ITEMS: NavItem[] = [
   { icon: '⚙️', label: 'ADMIN', to: '/admin/sessions' },
+  { icon: '👥', label: 'USERS', to: '/admin/users' },
   { icon: '➕', label: 'NUEVA', to: '/admin/sessions/new' },
 ]
 
@@ -40,7 +41,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   useDocumentTitle(title)
 
   const isAdmin = user?.rol === 'admin'
-  const allNavItems = [...NAV_ITEMS, ...(isAdmin ? ADMIN_ITEMS : [])]
+  const allNavItems = [...NAV_ITEMS]
+  const adminItems = isAdmin ? ADMIN_ITEMS : []
 
   const isActive = (to: string) =>
     location.pathname === to || location.pathname.startsWith(to + '/')
@@ -82,39 +84,46 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         </div>
 
         {/* Nav items */}
-        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
-          {allNavItems.map((item) => {
+        <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+          {[...allNavItems, ...adminItems].map((item, i) => {
             const active = isActive(item.to)
+            const showAdminDivider = adminItems.length > 0 && i === allNavItems.length
             return (
-              <div
-                key={item.to}
-                onClick={() => navigate(item.to)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingTop: 14,
-                  paddingBottom: 14,
-                  cursor: 'pointer',
-                  position: 'relative',
-                  backgroundColor: active ? 'rgba(201,82,26,0.2)' : 'transparent',
-                  borderRight: active ? `3px solid ${SIDEBAR_ACTIVE}` : '3px solid transparent',
-                  transition: 'background-color 0.1s',
-                }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(255,255,255,0.05)' }}
-                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent' }}
-              >
-                <span style={{ fontSize: '1.3rem', marginBottom: 5 }}>{item.icon}</span>
-                <span style={{
-                  fontFamily: "'Press Start 2P', monospace",
-                  fontSize: '0.38rem',
-                  color: active ? SIDEBAR_ACTIVE : SIDEBAR_TEXT,
-                  letterSpacing: '0.05em',
-                  textAlign: 'center',
-                }}>
-                  {item.label}
-                </span>
+              <div key={item.to}>
+                {showAdminDivider && (
+                  <div style={{ padding: '6px 12px', marginTop: 4, marginBottom: 2 }}>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+                  </div>
+                )}
+                <div
+                  onClick={() => navigate(item.to)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingTop: 14,
+                    paddingBottom: 14,
+                    cursor: 'pointer',
+                    position: 'relative',
+                    backgroundColor: active ? 'rgba(201,82,26,0.2)' : 'transparent',
+                    borderRight: active ? `3px solid ${SIDEBAR_ACTIVE}` : '3px solid transparent',
+                    transition: 'background-color 0.1s',
+                  }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'rgba(255,255,255,0.05)' }}
+                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.backgroundColor = 'transparent' }}
+                >
+                  <span style={{ fontSize: '1.3rem', marginBottom: 5 }}>{item.icon}</span>
+                  <span style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: '0.38rem',
+                    color: active ? SIDEBAR_ACTIVE : SIDEBAR_TEXT,
+                    letterSpacing: '0.05em',
+                    textAlign: 'center',
+                  }}>
+                    {item.label}
+                  </span>
+                </div>
               </div>
             )
           })}

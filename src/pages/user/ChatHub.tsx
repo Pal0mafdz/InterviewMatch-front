@@ -89,6 +89,23 @@ function triggerDownload(blob: Blob, fileName: string) {
 
 const TYPING_IDLE_MS = 1800
 
+const LAST_SEEN_PREFIX = 'chat-lastSeen-'
+
+function getLastSeen(threadId: string): string | null {
+  return localStorage.getItem(LAST_SEEN_PREFIX + threadId)
+}
+
+function markThreadSeen(threadId: string) {
+  localStorage.setItem(LAST_SEEN_PREFIX + threadId, new Date().toISOString())
+}
+
+function hasUnread(thread: ChatThreadPreview): boolean {
+  if (!thread.lastMessageAt) return false
+  const lastSeen = getLastSeen(thread.threadId)
+  if (!lastSeen) return true
+  return new Date(thread.lastMessageAt).getTime() > new Date(lastSeen).getTime()
+}
+
 function platformLabel(platform: keyof PublicProfiles) {
   return {
     leetcode: 'LeetCode',
@@ -221,6 +238,8 @@ export function ChatHub() {
       return
     }
 
+    markThreadSeen(selectedThreadId)
+
     setLoadingMessages(true)
     getThreadMessages(selectedThreadId)
       .then((response) => setMessages(response.messages))
@@ -269,6 +288,7 @@ export function ChatHub() {
 
       setMessages((current) => mergeMessage(current, payload))
       setThreads((current) => updateThreadPreview(current, selectedThreadId, payload))
+      markThreadSeen(selectedThreadId)
     })
 
     source.addEventListener('proposal.accepted', (event) => {
@@ -469,6 +489,7 @@ export function ChatHub() {
             ) : (
               threads.map((thread) => {
                 const active = thread.threadId === selectedThreadId
+                const unread = !active && hasUnread(thread)
                 return (
                   <button
                     key={thread.threadId}
@@ -483,8 +504,20 @@ export function ChatHub() {
                       cursor: 'pointer'
                     }}
                   >
-                    <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.56rem', color: '#1A0F08', marginBottom: 4 }}>
-                      {thread.participant.nombre}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.56rem', color: '#1A0F08' }}>
+                        {thread.participant.nombre}
+                      </div>
+                      {unread ? (
+                        <span style={{
+                          display: 'inline-block',
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: '#C9521A',
+                          flexShrink: 0
+                        }} />
+                      ) : null}
                     </div>
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.72rem', color: '#7A4F2D' }}>
                       {thread.lastMessage?.type === 'text' ? thread.lastMessage.texto : 'Actividad en propuesta'}
@@ -719,7 +752,7 @@ export function ChatHub() {
                   </Button>
                 </div>
                 <div style={{ marginTop: 8, fontFamily: "'Space Mono', monospace", fontSize: '0.7rem', color: '#7A4F2D' }}>
-                  Hora local: {timezoneLabel}. Se guarda en UTC y cada usuario la ve en su propio timezone.
+                  Hora local: {timezoneLabel}
                 </div>
               </div>
             </div>
@@ -758,26 +791,26 @@ export function ChatHub() {
               </div>
 
               <div style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                  <div className="retro-avatar">{selectedParticipant.nombre?.charAt(0).toUpperCase() || '?'}</div>
-                  <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', marginBottom: 0 }}>
-                    {selectedParticipant.nombre}
-                  </h2>
-                </div>
-
-                {selectedParticipant.bio ? (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">💬 BIO</span>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.8rem', color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, fontStyle: 'italic' }}>
-                      {selectedParticipant.bio}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <div className="retro-avatar retro-avatar-md">{selectedParticipant.nombre?.charAt(0).toUpperCase() || '?'}</div>
+                  <div>
+                    <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.63rem', lineHeight: 1.6 }}>
+                      {selectedParticipant.nombre || 'Sin nombre'}
                     </div>
                   </div>
-                ) : null}
+                </div>
 
-                {selectedParticipantLinks.length > 0 ? (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">BIO</span>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', lineHeight: 1.6, color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, whiteSpace: 'pre-line' }}>
+                    {selectedParticipant.bio || 'Sin bio cargada.'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">PERFILES PUBLICOS</span>
+                  {selectedParticipantLinks.length > 0 ? (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                       {selectedParticipantLinks.map(([platform, value]) => (
                         <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                           <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
@@ -786,18 +819,24 @@ export function ChatHub() {
                         </a>
                       ))}
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.74rem', color: '#7A4F2D', marginTop: 8 }}>
+                      Sin perfiles públicos cargados.
+                    </div>
+                  )}
+                </div>
 
                 {selectedParticipant.cvPath ? (
-                  <div style={{ marginTop: 20 }}>
-                    <a href={`${STATIC_BASE_URL}${selectedParticipant.cvPath}`} download={buildCvDownloadName(selectedParticipant.nombre)} style={{ textDecoration: 'none' }}>
-                      <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
-                        ⬇ DESCARGAR CV
-                      </Button>
-                    </a>
+                  <a href={`${STATIC_BASE_URL}${selectedParticipant.cvPath}`} download={buildCvDownloadName(selectedParticipant.nombre)} style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
+                      ⬇ DESCARGAR CV
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="retro-alert retro-alert-info" style={{ marginBottom: 0 }}>
+                    Este usuario no tiene CV cargado.
                   </div>
-                ) : null}
+                )}
               </div>
             </Card>
           </div>

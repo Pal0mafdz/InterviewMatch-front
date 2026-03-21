@@ -19,13 +19,15 @@ function platformLabel(platform: keyof PublicProfiles) {
   }[platform]
 }
 
-function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, onOpenChat }: {
+function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInterviewer, feedbackAsInterviewee, livecodeOwn, livecodePartner, onOpenChat }: {
   slot: number
   partner: any
   enlaceReunion?: string
   totalMocks: number
   feedbackAsInterviewer?: { path: string } | null
   feedbackAsInterviewee?: { path: string } | null
+  livecodeOwn?: { roomId: string; path: string } | null
+  livecodePartner?: { roomId: string; path: string } | null
   onOpenChat?: (partnerId: string) => void
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -72,20 +74,46 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
             </div>
           )}
 
-          {feedbackAsInterviewer || feedbackAsInterviewee ? (
+          {(feedbackAsInterviewer || livecodePartner) ? (
             <div style={{ marginTop: 18 }}>
-              <span className="retro-label">📝 FEEDBACK</span>
+              <span className="retro-label">COMO ENTREVISTADOR</span>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {livecodePartner ? (
+                  <a href={livecodePartner.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                      title={`Abre el editor de código de ${partner?.nombre || 'tu pareja'} en modo lectura`}>
+                      VER CÓDIGO DE {partner?.nombre?.toUpperCase() || 'PAREJA'}
+                    </Button>
+                  </a>
+                ) : null}
                 {feedbackAsInterviewer ? (
                   <a href={feedbackAsInterviewer.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08">
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Rellena el formulario de feedback para tu pareja">
                       DAR FEEDBACK
+                    </Button>
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {(livecodeOwn || feedbackAsInterviewee) ? (
+            <div style={{ marginTop: 18 }}>
+              <span className="retro-label">COMO ENTREVISTADO</span>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {livecodeOwn ? (
+                  <a href={livecodeOwn.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Abre tu editor de código donde resolverás el problema">
+                      TU CÓDIGO
                     </Button>
                   </a>
                 ) : null}
                 {feedbackAsInterviewee ? (
                   <a href={feedbackAsInterviewee.path} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
+                    <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08"
+                      title="Disponible cuando tu entrevistador complete el feedback">
                       VER TU FEEDBACK
                     </Button>
                   </a>
@@ -136,26 +164,26 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
               </div>
               
               <div style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                  <div className="retro-avatar">{partner.nombre?.charAt(0).toUpperCase()}</div>
-                  <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.9rem', marginBottom: 0 }}>
-                    {partner.nombre}
-                  </h2>
-                </div>
-
-                {partner.bio && (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">💬 BIO</span>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.8rem', color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, fontStyle: 'italic' }}>
-                      {partner.bio}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <div className="retro-avatar retro-avatar-md">{partner.nombre?.charAt(0).toUpperCase() || '?'}</div>
+                  <div>
+                    <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.63rem', lineHeight: 1.6 }}>
+                      {partner.nombre || 'Sin nombre'}
                     </div>
                   </div>
-                )}
+                </div>
 
-                {publicLinks.length > 0 ? (
-                  <div style={{ marginBottom: 16 }}>
-                    <span className="retro-label">🌐 LINKS PÚBLICOS</span>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">BIO</span>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.78rem', lineHeight: 1.6, color: '#7A4F2D', borderLeft: '3px solid #C9521A', paddingLeft: 10, whiteSpace: 'pre-line' }}>
+                    {partner.bio || 'Sin bio cargada.'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <span className="retro-label">PERFILES PUBLICOS</span>
+                  {publicLinks.length > 0 ? (
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
                       {publicLinks.map(([platform, value]) => (
                         <a key={platform} href={value} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                           <Button bg="#FBF3E3" textColor="#1A0F08" shadow="#1A0F08" borderColor="#1A0F08">
@@ -164,16 +192,22 @@ function PartnerCard({ slot, partner, enlaceReunion, totalMocks, feedbackAsInter
                         </a>
                       ))}
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.74rem', color: '#7A4F2D', marginTop: 8 }}>
+                      Sin perfiles públicos cargados.
+                    </div>
+                  )}
+                </div>
 
-                {partner.cvPath && (
-                  <div style={{ marginTop: 20 }}>
-                    <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
-                      <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
-                        ⬇ DESCARGAR CV
-                      </Button>
-                    </a>
+                {partner.cvPath ? (
+                  <a href={`${STATIC_BASE_URL}${partner.cvPath}`} download={buildCvDownloadName(partner.nombre)} style={{ textDecoration: 'none' }}>
+                    <Button bg="#C9521A" textColor="#FFFDF7" shadow="#1A0F08" borderColor="#1A0F08" style={{ width: '100%' }}>
+                      ⬇ DESCARGAR CV
+                    </Button>
+                  </a>
+                ) : (
+                  <div className="retro-alert retro-alert-info" style={{ marginBottom: 0 }}>
+                    Este usuario no tiene CV cargado.
                   </div>
                 )}
               </div>
@@ -231,8 +265,8 @@ export function MyMatch() {
         </p>
       )}
       {!matchData.matches[0] && !matchData.partner ? null : matchData.totalMocks === 1
-        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
-        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
+        ? <PartnerCard key={matchData.matches[0]?.matchId || matchData.matchId || '1'} slot={1} partner={matchData.partner || matchData.matches[0]?.partner} enlaceReunion={matchData.enlaceReunion || matchData.matches[0]?.enlaceReunion} feedbackAsInterviewer={matchData.matches[0]?.feedbackAsInterviewer} feedbackAsInterviewee={matchData.matches[0]?.feedbackAsInterviewee} livecodeOwn={matchData.matches[0]?.livecodeOwn} livecodePartner={matchData.matches[0]?.livecodePartner} totalMocks={1} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />
+        : matchData.matches.map((m, i) => <PartnerCard key={m.matchId || i} slot={i + 1} partner={m.partner} enlaceReunion={m.enlaceReunion} feedbackAsInterviewer={m.feedbackAsInterviewer} feedbackAsInterviewee={m.feedbackAsInterviewee} livecodeOwn={m.livecodeOwn} livecodePartner={m.livecodePartner} totalMocks={matchData.totalMocks} onOpenChat={(partnerId) => navigate(`/chats?userId=${encodeURIComponent(partnerId)}`)} />)
       }
     </div>
   )
