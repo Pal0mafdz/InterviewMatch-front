@@ -43,9 +43,7 @@ export function FeedbackStudio() {
       return
     }
 
-    const viewUrl = state.viewKey
-      ? buildAbsoluteFeedbackDigestUrl(state.feedbackId, state.viewKey)
-      : `${window.location.origin}/feedback/${state.feedbackId}`
+    const viewUrl = buildAbsoluteFeedbackDigestUrl(state.feedbackId, state.viewKey)
 
     await window.navigator.clipboard.writeText(viewUrl)
     setViewLinkCopied(true)

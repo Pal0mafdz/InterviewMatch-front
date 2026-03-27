@@ -15,7 +15,9 @@ import { Arsenal } from '../pages/user/Arsenal'
 import { AdminSessions } from '../pages/admin/AdminSessions'
 import { CreateSession } from '../pages/admin/CreateSession'
 import { AdminSessionDetail } from '../pages/admin/AdminSessionDetail'
+import { AdminUsers } from '../pages/admin/AdminUsers'
 import { FeedbackStudioPage } from '../pages/feedback/FeedbackStudioPage'
+import { LiveCodePage } from '../pages/livecode/LiveCodePage'
 
 export function AppRouter() {
   return (
@@ -28,6 +30,7 @@ export function AppRouter() {
         <Route path="/feedback" element={<FeedbackStudioPage />} />
         <Route path="/feedback/:id" element={<FeedbackStudioPage />} />
         <Route path="/feedback/view/:id" element={<FeedbackStudioPage />} />
+        <Route path="/livecode/*" element={<LiveCodePage />} />
 
         {/* User routes */}
         <Route path="/sessions" element={
@@ -92,6 +95,13 @@ export function AppRouter() {
           <AdminRoute>
             <AppLayout title="Admin — Nueva Sesión">
               <CreateSession />
+            </AppLayout>
+          </AdminRoute>
+        } />
+        <Route path="/admin/users" element={
+          <AdminRoute>
+            <AppLayout title="Admin — Usuarios">
+              <AdminUsers />
             </AppLayout>
           </AdminRoute>
         } />

@@ -14,16 +14,19 @@
     "@emotion/styled": "^11.14.1",
     "@hookform/resolvers": "^5.2.2",
     "@mantine/core": "^8.3.17",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
     "98.css": "^0.1.21",
     "framer-motion": "^12.36.0",
     "lucide-react": "^0.577.0",
+    "monaco-editor": "^0.55.1",
     "pixel-retroui": "^2.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.13.1"
+    "react-router-dom": "^7.13.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

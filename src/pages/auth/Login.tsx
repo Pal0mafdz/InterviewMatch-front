@@ -5,6 +5,7 @@ import { AuthBrand } from '../../components/AuthBrand'
 import { useAuth } from '../../context/useAuth'
 import { login as apiLogin } from '../../api/auth'
 import { toast } from 'react-hot-toast'
+import { NiniMailIcon } from '../../components/NiniMailIcon'
 
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 
@@ -77,7 +78,7 @@ export function Login() {
                     placeholder="tu@correo.com"
                     required
                   />
-                  <span className="retro-auth-input-icon" aria-hidden="true">✉</span>
+                  <span className="retro-auth-input-icon" aria-hidden="true"><NiniMailIcon /></span>
                 </div>
               </div>
 

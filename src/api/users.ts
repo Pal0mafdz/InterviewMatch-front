@@ -12,11 +12,23 @@ export interface UserProfile {
   nombre: string
   email: string
   rol: 'user' | 'admin'
+  isBlocked?: boolean
   cvPath?: string
   bio?: string
   publicProfiles?: PublicProfiles
   createdAt?: string
   updatedAt?: string
+}
+
+export function getUsers(params?: { rol?: 'user' | 'admin' }): Promise<UserProfile[]> {
+  const query = new URLSearchParams()
+
+  if (params?.rol) {
+    query.set('rol', params.rol)
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  return apiFetch<UserProfile[]>(`/users${suffix}`)
 }
 
 export function getProfile(): Promise<UserProfile> {
